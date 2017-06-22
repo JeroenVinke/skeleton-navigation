@@ -10,48 +10,9 @@
   "author": "Bazyli Brzóska <bazyli.brzoska@gmail.com> (https://invent.life/)",
   "license": "CC0-1.0",
   "scripts": {
-    "prebuild": "del-cli dist",
-    "build": "bnr webpack:build:production",
-    "start": "bnr webpack:dashboard",
-    "webpack": "bnr webpack",
-    "pretest": "del-cli coverage",
-    "test": "bnr test",
-    "posttest": "mv __coverage__/remapped coverage && del-cli __coverage__",
-    "serve": "http-server dist --cors",
-    "pree2e": "bnr webdriver:update",
-    "e2e": "concurrently --success first --kill-others \"bnr e2e:start-when-ready\" \"bnr webpack:e2e\"",
-    "e2e:start": "bnr e2e:start",
-    "e2e:debug": "bnr e2e:debug",
-    "bnr": "bnr"
-  },
-  "betterScripts": {
-    "test": "$NODE $LOCAL/jest --no-cache",
-    "ssr": "$LOCAL/ts-node server/index",
-    "webdriver:update": "$LOCAL/webdriver-manager update --standalone",
-    "e2e:start-when-ready": "wait-on --timeout 120000 http-get://localhost:19876/index.html && bnr e2e:start",
-    "e2e:start": "$LOCAL/protractor test/protractor.conf.js",
-    "e2e:debug": "$LOCAL/protractor test/protractor.conf.js --elementExplorer",
-    "webpack": "$LOCAL/webpack-dev-server --hot --inline --open",
-    "webpack:dashboard": "$LOCAL/webpack-dashboard -- $LOCAL/webpack-dev-server --hot --inline --open",
-    "webpack:e2e": {
-      "command": "bnr webpack",
-      "env": {
-        "WEBPACK_PORT": 19876
-      }
-    },
-    "webpack:build:development": {
-      "command": "$LOCAL/webpack --progress",
-      "env": {
-        "NODE_ENV": "development"
-      }
-    },
-    "webpack:build:production": {
-      "command": "$LOCAL/webpack --progress",
-      "env": {
-        "NODE_ENV": "production"
-      }
-    },
-    "webpack:debug": "$NODE_DEBUG $LOCAL/webpack --watch"
+    "start": "nps",
+    "test": "nps test",
+    "ssr": "nps ssr"
   },
   "jest": {
     "modulePaths": [
@@ -91,17 +52,17 @@
     }
   },
   "devDependencies": {
-    "@easy-webpack/core": "^2.0.1",
-    "@types/jest": "^16.0.4",
+    "@types/jest": "19.2.4",
     "@types/jsdom": "^2.0.29",
-    "@types/node": "^7.0.0",
-    "@types/webpack": "^2.2.1",
-    "@types/whatwg-fetch": "^0.0.33",
-    "aurelia-loader-nodejs": "^1.0.0",
+    "@types/lodash": "4.14.65",
+    "@types/node": "7.0.29",
+    "@types/webpack": "2.2.15",
+    "aurelia-loader-nodejs": "^1.0.1",
     "aurelia-pal-nodejs": "1.0.0-beta.1.0.0",
     "aurelia-protractor-plugin": "^1.0.1",
     "aurelia-template-lint-webpack-loader": "^1.0.2",
     "aurelia-testing": "^1.0.0-beta.2.0.1",
+    "aurelia-webpack-plugin": "^2.0.0-rc.2",
     "awesome-typescript-loader": "^3.0.0-beta.18",
     "better-npm-run": "0.0.14",
     "bundle-loader": "^0.5.4",
@@ -116,17 +77,20 @@
     "html-webpack-plugin": "^2.26.0",
     "http-server": "^0.9.0",
     "jest": "^18.1.0",
+    "nps": "5.3.1",
+    "nps-utils": "1.2.0",
+    "postcss-loader": "2.0.5",
     "protractor": "^5.0.0",
     "style-loader": "^0.13.1",
     "ts-jest": "^18.0.1",
-    "ts-node": "^2.0.0",
-    "typescript": "^2.1.5",
+    "ts-node": "3.0.6",
+    "typescript": "2.3.4",
     "url-loader": "^0.5.7",
     "wait-on": "^2.0.1",
-    "webpack": "2.2.0",
+    "webpack": "2.6.1",
     "webpack-dashboard": "^0.2.1",
-    "webpack-dependency-suite": "^1.5.0",
-    "webpack-dev-server": "2.2.0",
+    "webpack-dependency-suite": "^2.1.2",
+    "webpack-dev-server": "2.4.5",
     "webpack-md5-hash": "^0.0.5"
   },
   "dependencies": {
@@ -143,6 +107,7 @@
     "aurelia-templating-binding": "^1.2.0",
     "aurelia-templating-resources": "^1.2.0",
     "aurelia-templating-router": "^1.0.1",
+    "autoprefixer": "^7.1.1",
     "bootstrap": "^3.3.7",
     "font-awesome": "^4.7.0",
     "isomorphic-fetch": "^2.2.1",

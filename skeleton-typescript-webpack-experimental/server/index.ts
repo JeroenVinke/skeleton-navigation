@@ -2,7 +2,7 @@
 
 import * as path from 'path';
 import 'aurelia-polyfills';
-import {Options, WebpackLoader as NodeJsLoader} from 'aurelia-loader-nodejs';
+import {Options, NodeJsLoader} from 'aurelia-loader-nodejs';
 import {PLATFORM, DOM} from 'aurelia-pal';
 import {globalize} from 'aurelia-pal-nodejs';
 import {Aurelia} from 'aurelia-framework';
