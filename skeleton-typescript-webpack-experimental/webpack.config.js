@@ -17,6 +17,7 @@ const outDir = path.resolve(__dirname, 'dist');
 const srcDir = path.resolve(__dirname, 'src');
 const nodeModulesDir = path.resolve(__dirname, 'node_modules');
 const baseUrl = '/';
+const ssr = '';
 
 const cssRules = [
   { loader: 'css-loader' },
@@ -38,9 +39,9 @@ module.exports = ({production, server, extractCss, coverage} = {}) => ({
   output: {
     path: outDir,
     publicPath: baseUrl,
-    filename: production ? '[name].[chunkhash].bundle.js' : '[name].[hash].bundle.js',
-    sourceMapFilename: production ? '[name].[chunkhash].bundle.map' : '[name].[hash].bundle.map',
-    chunkFilename: production ? '[name].[chunkhash].chunk.js' : '[name].[hash].chunk.js',
+    filename: production ? '[name].[chunkhash].bundle.js' : '[name].bundle.js',
+    sourceMapFilename: production ? '[name].[chunkhash].bundle.map' : '[name].bundle.map',
+    chunkFilename: production ? '[name].[chunkhash].chunk.js' : '[id].chunk.js',
   },
   devServer: {
     contentBase: outDir,
@@ -104,7 +105,7 @@ module.exports = ({production, server, extractCss, coverage} = {}) => ({
       } : undefined,
       metadata: {
         // available in index.ejs //
-        title, server, baseUrl
+        title, server, baseUrl, ssr
       },
     }),
     new CopyWebpackPlugin([

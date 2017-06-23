@@ -9,6 +9,7 @@ import {Aurelia} from 'aurelia-framework';
 import * as http from 'http'
 import * as webpack from 'webpack'
 import * as ecstatic from 'ecstatic'
+import * as ejs from 'ejs';
 
 // ignore importing '.css' files, useful only for Webpack codebases that do stuff like require('./file.css'):
 require.extensions['.css'] = function (m, filename) {
@@ -73,7 +74,7 @@ const server = http.createServer((request, response) => {
 
   const aurelia = new Aurelia(new NodeJsLoader())
   aurelia.host = document.body
-  ;(aurelia as any).configModuleId = 'main'
+  ;(aurelia as any).configModuleId = 'main' // parse html template and find the aurelia-app="" ?
 
   // note: this assumes your configure method awaits or returns the value of aurelia.setRoot(...)
   // skeletons currently don't do that so you need to adjust
@@ -81,21 +82,21 @@ const server = http.createServer((request, response) => {
     const attribute = document.createAttribute('aurelia-app')
     attribute.value = 'main'
     document.body.attributes.setNamedItem(attribute)
-    const renderedHtml = 
-      `<!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Aurelia Navigation Server Skeleton</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <base href="">
-        <link href="/1.css" rel="stylesheet">
-        <script type="text/javascript" async src="/app.bundle.js"></script>
-      </head>
-      ${document.body.outerHTML}
-      </html>`
 
-    response.end(renderedHtml)
+    var template = ejs.compile(require('fs').readFileSync('./index.ejs', 'utf-8'));
+
+    response.end(template({ 
+      htmlWebpackPlugin : {
+        options: {
+          metadata: {
+            baseUrl: '',
+            title: 'Aurelia Skeleton Navigation',
+            ssr: document.body.outerHTML,
+            scripts: '<script src="dist/vendor.bundle.js"></script><script src="dist/app.bundle.js"></script>'
+          }
+        }
+      }
+    }))
   });
 })
 
