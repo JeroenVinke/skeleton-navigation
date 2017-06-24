@@ -5,6 +5,7 @@ import 'aurelia-polyfills';
 import {Options, NodeJsLoader} from 'aurelia-loader-nodejs';
 import {PLATFORM, DOM} from 'aurelia-pal';
 import {globalize} from 'aurelia-pal-nodejs';
+import * as jsdom from 'jsdom';
 import {Aurelia} from 'aurelia-framework';
 import * as Koa from 'koa';
 import * as Router from 'koa-router';
@@ -85,7 +86,7 @@ function serve() {
   app.use(async (ctx, next) => {
     let extensionMatcher = /^.*\.[^\\]+$/;
     if (!ctx.request.path.match(extensionMatcher)) {
-      let html = await createApp(ctx.request.path);
+      let html = await createApp(ctx.request.URL.toString());
       ctx.body = html;
     } else {
       await next();
@@ -105,12 +106,8 @@ function serve() {
 // ------------- end express --------------------
 
 function createApp(url) {
-   // set the path you want to load:
-  // document.location.pathname = request.url
-  document.location.hash = url //'/users';
-  document.location.pathname = url;
-  console.log(url);
-  console.log(document.location.pathname);
+  // https://github.com/tmpvar/jsdom/tree/a6acac4e9dec4f859fff22676fb4e9eaa9139787#changing-the-url-of-an-existing-jsdom-window-instance
+  jsdom.changeURL(global.window, url);
   
   const aurelia = new Aurelia(new NodeJsLoader())
   aurelia.host = document.body
