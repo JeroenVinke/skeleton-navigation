@@ -6,11 +6,16 @@ import {Options, NodeJsLoader} from 'aurelia-loader-nodejs';
 import {PLATFORM, DOM} from 'aurelia-pal';
 import {globalize} from 'aurelia-pal-nodejs';
 import {Aurelia} from 'aurelia-framework';
-import * as http from 'http'
-import * as webpack from 'webpack'
-import * as ecstatic from 'ecstatic'
+import * as Koa from 'koa';
+import * as Router from 'koa-router';
+import * as webpackConfig from '../webpack.config';
+import * as webpack from 'webpack';
 import * as ejs from 'ejs';
 
+var server = null;
+const port = 8765;
+
+// ----------- setup ----------------
 // ignore importing '.css' files, useful only for Webpack codebases that do stuff like require('./file.css'):
 require.extensions['.css'] = function (m, filename) {
   return
@@ -33,72 +38,113 @@ globalize()
 
 // aurelia expects console.debug
 console.debug = console.log
+// --------------------- end setup -----------------
 
-// const compiler = webpack(require('../webpack.config'))
 
-// const watcher = compiler.watch({}, (err, stats) => {
-//   const info = stats.toJson({chunks: true})
-//   console.log(`ready to serve`, info)
-//   if (err) {
-//     console.error(err)
-//   }
-// })
 
-const staticHandler = ecstatic({ root: path.resolve(__dirname, '..', 'dist'), handleError: true })
-
-const server = http.createServer((request, response) => {
-  if (request.url.match(/\.(js|css|ico|woff2|woff|ttf)$/)) {
-    const ret = staticHandler(request, response)
-    // console.log(ret)
-    return
-    // if (response.finished) {
-    //   return
-    // } else {
-    //   response.statusCode = 404
-    //   response.end()
-    // }
+// ---------------- webpack compilation -------------------
+const config = webpackConfig({
+  production: false, server: false, extractCss: false, coverage: false
+});
+const compiler = webpack(config);
+function onBuild(err, stats) {
+  if (err) {
+    console.error(err.stack || err);
+    if (err.details) console.error(err.details);
+    process.exit(1);
+  } else {
+    process.stdout.write(stats.toString({ colors: require('supports-color') }) + '\n');
   }
+}
+console.log('Creating webpack bundles....');
+compiler.watch({}, onBuild);
+compiler.plugin('done', () => {
+  setTimeout(() => {
+    console.log('Webpack bundles created');
+    
+    if (!server) {
+      serve();
+    }
 
-  if (request.url.endsWith('.ico')) {
-    response.statusCode = 404
-    response.end()
-  }
+    delete require.cache[require.resolve('../src/main')]
 
-  response.statusCode = 200
+    console.log(`Listening server-side-rendered at http://localhost:${port}/`)
+  }, 100);
+});
+// ------------- end webpack compilation ---------------
 
-  console.log(`serving: ${request.url}`)
+// ------------ express ----------------
+function serve() {
+  const app = new Koa();
+  const router = new Router();
 
-  // set the path you want to load:
+  const root = path.join(__dirname, '../');
+  const dist = path.join(root, 'dist');
+  const staticDir = path.join(root, 'static');
+
+  app.use(async (ctx, next) => {
+    let extensionMatcher = /^.*\.[^\\]+$/;
+    if (!ctx.request.path.match(extensionMatcher)) {
+      let html = await createApp(ctx.request.path);
+      ctx.body = html;
+    } else {
+      await next();
+    }
+  });
+
+  app.use(require('koa-static')(root));
+  app.use(require('koa-static')(dist));
+
+  app
+    .use(router.routes())
+    .use(router.allowedMethods());
+
+  console.log('Starting server....');
+  server = app.listen(port);
+}
+// ------------- end express --------------------
+
+function createApp(url) {
+   // set the path you want to load:
   // document.location.pathname = request.url
-  document.location.hash = request.url //'/users';
-
+  document.location.hash = url //'/users';
+  document.location.pathname = url;
+  console.log(url);
+  console.log(document.location.pathname);
+  
   const aurelia = new Aurelia(new NodeJsLoader())
   aurelia.host = document.body
   ;(aurelia as any).configModuleId = 'main' // parse html template and find the aurelia-app="" ?
 
   // note: this assumes your configure method awaits or returns the value of aurelia.setRoot(...)
   // skeletons currently don't do that so you need to adjust
-  require('../src/main').configure(aurelia).then(() => {
+  return require('../src/main').configure(aurelia).then(x => {
     const attribute = document.createAttribute('aurelia-app')
     attribute.value = 'main'
     document.body.attributes.setNamedItem(attribute)
 
+    var vendorScript = document.createElement('script');
+    vendorScript.type = 'text/javascript';
+    vendorScript.src = 'dist/vendor.bundle.js';
+    document.body.appendChild(vendorScript);
+
+    var appScript = document.createElement('script');
+    appScript.type = 'text/javascript';
+    appScript.src = 'dist/app.bundle.js';
+    document.body.appendChild(appScript);
+
     var template = ejs.compile(require('fs').readFileSync('./index.ejs', 'utf-8'));
 
-    response.end(template({ 
+    return template({ 
       htmlWebpackPlugin : {
         options: {
           metadata: {
             baseUrl: '',
             title: 'Aurelia Skeleton Navigation',
-            ssr: document.body.outerHTML,
-            scripts: '<script src="dist/vendor.bundle.js"></script><script src="dist/app.bundle.js"></script>'
+            ssr: document.body.outerHTML
           }
         }
       }
-    }))
-  });
-})
-
-server.listen(8765)
-console.log(`Listening server-side-rendered at http://localhost:8765/`)
+    });
+  }).catch(e => console.log(e));
+}
