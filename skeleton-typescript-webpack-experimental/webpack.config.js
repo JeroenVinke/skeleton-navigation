@@ -17,7 +17,7 @@ const outDir = path.resolve(__dirname, 'dist');
 const srcDir = path.resolve(__dirname, 'src');
 const nodeModulesDir = path.resolve(__dirname, 'node_modules');
 const baseUrl = '/';
-const ssr = '';
+const body = '';
 
 const cssRules = [
   { loader: 'css-loader' },
@@ -105,11 +105,12 @@ module.exports = ({production, server, extractCss, coverage} = {}) => ({
       } : undefined,
       metadata: {
         // available in index.ejs //
-        title, server, baseUrl, ssr
+        title, server, baseUrl, body
       },
     }),
     new CopyWebpackPlugin([
-      { from: 'static/favicon.ico', to: 'favicon.ico' }
+      { from: 'static/favicon.ico', to: 'favicon.ico' },
+      { from: 'node_modules/preboot/__dist/preboot_browser.js', to: 'preboot_browser.js' }
     ]),
     ...when(extractCss, new ExtractTextPlugin({
       filename: production ? '[contenthash].css' : '[id].css',

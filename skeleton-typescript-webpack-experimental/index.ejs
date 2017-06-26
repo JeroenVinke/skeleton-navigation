@@ -7,10 +7,10 @@
     <base href="<%- htmlWebpackPlugin.options.metadata.baseUrl %>">
     <!-- imported CSS are concatenated and added automatically -->
   </head>
-  <%if (!htmlWebpackPlugin.options.metadata.ssr) {%>
+  <%if (!htmlWebpackPlugin.options.metadata.body) {%>
   <body aurelia-app="main">
   </body>
   <% } else { %>
-  <%- htmlWebpackPlugin.options.metadata.ssr %>
+  <%- htmlWebpackPlugin.options.metadata.body %>
   <% } %>
 </html>

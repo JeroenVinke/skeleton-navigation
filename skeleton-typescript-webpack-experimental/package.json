@@ -10,9 +10,8 @@
   "author": "Bazyli Brzóska <bazyli.brzoska@gmail.com> (https://invent.life/)",
   "license": "CC0-1.0",
   "scripts": {
-    "start": "nps",
     "test": "nps test",
-    "ssr": "nps ssr"
+    "start": "nps ssr"
   },
   "jest": {
     "modulePaths": [
