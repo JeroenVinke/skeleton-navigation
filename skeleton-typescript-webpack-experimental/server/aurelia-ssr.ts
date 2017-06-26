@@ -45,6 +45,13 @@ async function render(options: RenderOptions) {
     throw new Error('404');
   }
 
+  // <input> .value property does not map to @value attribute, .defaultValue does.
+  // so we need to copy that value over if we want it to serialize into HTML <input value="">
+  [].forEach.call(document.body.querySelectorAll('input'), input => {
+    if (input.value != null) 
+      input.defaultValue = input.value;
+  });
+
   let body = document.body.outerHTML;
 
   let html = ejs.compile(options.template)({ 
