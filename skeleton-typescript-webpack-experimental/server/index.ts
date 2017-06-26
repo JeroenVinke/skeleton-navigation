@@ -19,7 +19,6 @@ start(() => {
   process.stdin.resume();
 });
 
-
 process.on('unhandledRejection', function(reason, p) {
   console.log('Possibly unhandled Rejection at: Promise ', p, ' reason: ', reason);
   console.log(reason.stack);

@@ -56,6 +56,7 @@
     "@types/lodash": "4.14.65",
     "@types/node": "7.0.29",
     "@types/webpack": "2.2.15",
+    "aurelia-history": "^1.0.0",
     "aurelia-loader-nodejs": "^1.0.1",
     "aurelia-pal-nodejs": "1.0.0-beta.1.0.0",
     "aurelia-protractor-plugin": "^1.0.1",

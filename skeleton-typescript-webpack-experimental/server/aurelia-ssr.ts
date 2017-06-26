@@ -1,13 +1,14 @@
 import 'aurelia-polyfills';
 import {Aurelia} from 'aurelia-framework';
-import {Router} from 'aurelia-router';
+import {Router, AppRouter} from 'aurelia-router';
+import {SSRRouter} from './ssr-router';
+import {Options, NodeJsLoader} from 'aurelia-loader-nodejs';
+import {globalize} from 'aurelia-pal-nodejs';
 import * as jsdom from 'jsdom';
 import * as preboot from 'preboot';
 import * as path from 'path';
-import {Options, NodeJsLoader} from 'aurelia-loader-nodejs';
-import {globalize} from 'aurelia-pal-nodejs';
-import {RenderOptions, InitializeOptions} from './interfaces';
 import * as ejs from 'ejs';
+import {RenderOptions, InitializeOptions} from './interfaces';
 
 var aurelia = null;
 
@@ -38,7 +39,11 @@ async function render(options: RenderOptions) {
 
   let router = aurelia.container.get(Router);
   console.log(`Routing to ${options.route}`);
-  await router.navigate(options.route);
+  try {
+    await router.navigate(options.route);
+  } catch (e) {
+    throw new Error('404');
+  }
 
   let body = document.body.outerHTML;
 
@@ -101,7 +106,18 @@ async function initializeApp(options) {
   aurelia = new Aurelia(new NodeJsLoader())
   aurelia.host = document.body
   ;(aurelia as any).configModuleId = options.serverMainId;
+
+  // Custom AppRouter which throws an error on 404
+  // so we can handle this event in the express/koa/etc
+  aurelia.container.registerSingleton(Router, SSRRouter);
   
+  // need to get "require('../src/main')" out of here
+  // but it fails to import styles.css from main.ts when you do require('../src/main') this in server/index.ts
+  // probably because 
+  // require.extensions['.css'] = function (m, filename) {
+  //    return
+  // };
+  // hasn't executed yet in initializeSSR()
   await require('../src/main').configure(aurelia);
 
   const attribute = document.createAttribute('aurelia-app')
