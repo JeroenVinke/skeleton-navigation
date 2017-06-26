@@ -90,6 +90,6 @@ module.exports = {
       },
     },
     serve: 'http-server dist --cors',
-    ssr: 'nodemon -L --watch server/index.ts --exec "ts-node server/index"'
+    ssr: 'nodemon -L --watch server/index.ts --watch server/build.ts --watch server/aurelia-ssr.ts --watch server/serve.ts --watch server/interfaces.ts --exec "ts-node server/index"'
   },
 }
