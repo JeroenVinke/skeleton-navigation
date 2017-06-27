@@ -12,6 +12,10 @@ export let aureliaKoaMiddleware = renderOptions => {
 
     try {
       let html = await render(Object.assign({ route: ctx.request.URL.pathname }, renderOptions));
+
+      // just to indicate when server-view is active
+      html = html.replace('collapse navbar-collapse', 'collapse navbar-collapse green');
+
       ctx.body = html;
     } catch (e) {
       if (e.message === '404') {
