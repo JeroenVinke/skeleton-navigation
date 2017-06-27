@@ -11,7 +11,11 @@
   "license": "CC0-1.0",
   "scripts": {
     "test": "nps test",
-    "start": "nps ssr"
+    "start": "node server/index.js",
+    "ssr": "nps ssr"
+  },
+  "engines":{
+    "node": "8.1.2"
   },
   "jest": {
     "modulePaths": [
