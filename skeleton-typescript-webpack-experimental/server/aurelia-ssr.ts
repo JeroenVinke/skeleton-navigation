@@ -39,10 +39,15 @@ async function render(options: RenderOptions) {
 
   let router = aurelia.container.get(Router);
   console.log(`Routing to ${options.route}`);
+
   try {
     await router.navigate(options.route);
   } catch (e) {
-    throw new Error('404');
+    if (e.message.indexOf('Route not found') > -1) {
+      throw new Error('404');
+    } else {
+      throw e;
+    }
   }
 
   // <input> .value property does not map to @value attribute, .defaultValue does.
