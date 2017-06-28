@@ -21,8 +21,6 @@ function serve() {
 
     app.use(aureliaKoaMiddleware({
       preboot: true,
-      stylesheets: ['dist/0.css'],
-      bundles: ['dist/app.bundle.js', 'dist/vendor.bundle.js'],
       templateContext: {
         title: 'Aurelia Server Side Rendering',
         baseUrl: '/'

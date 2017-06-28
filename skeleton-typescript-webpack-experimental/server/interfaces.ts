@@ -7,7 +7,7 @@ export interface RenderOptions extends InitializationOptions {
 
   /**
    * Whether or not to use preboot. Preboot allows you to record (and playback) events
-   * that occur before the client-app is loaded
+   * that occur before the client-app is loaded (defaults to false)
    */
   preboot: boolean;
 
@@ -46,9 +46,9 @@ export interface InitializationOptions {
   serverMainId?: string;
 
   /**
-   * The result of require('../src/main') where main is the server main
+   * The path to the server main (defaults to path.join(options.srcRoot, options.serverMain))
    */
-  // serverMain: { configure: Promise<any> };
+  serverMain?: string;
 
   /**
    * The directory containing the source code (e.g. 'src')

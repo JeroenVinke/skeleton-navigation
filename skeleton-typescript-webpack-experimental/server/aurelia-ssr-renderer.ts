@@ -13,7 +13,20 @@ import {RenderOptions, InitializationOptions} from './interfaces';
 var aurelia = null;
 var host = null;
 
-async function initializeSSR(options: RenderOptions | InitializationOptions) {
+async function initializeSSR(options?: RenderOptions | InitializationOptions) {
+  if (!options) {
+    options = {};
+  }
+  if (!options.srcRoot) {
+    options.srcRoot = path.resolve(__dirname, '..', 'src');
+  }
+  if (!options.serverMainId) {
+    options.serverMainId = 'main';
+  }
+  if (!options.serverMain) {
+    options.serverMain = path.join(options.srcRoot, options.serverMainId);
+  }
+
   // ignore importing '.css' files, useful only for Webpack codebases that do stuff like require('./file.css'):
   require.extensions['.css'] = function (m, filename) {
     return
@@ -21,7 +34,7 @@ async function initializeSSR(options: RenderOptions | InitializationOptions) {
 
   // set the root directory where the aurelia loader will resolve to
   // this is the 'src' dir in case of skeleton
-  Options.relativeToDir = options.srcRoot || path.resolve(__dirname, '..', 'src');
+  Options.relativeToDir = options.srcRoot;
 
   // initialize PAL and set globals (window, document, etc.)
   globalize();
@@ -34,8 +47,14 @@ async function initializeSSR(options: RenderOptions | InitializationOptions) {
 }
 
 async function render(options: RenderOptions) {
-  if (!options.route || !options.templateContext || !options.template) {
-    throw new Error('Missing property (route | templateContext | template)');
+  if (!options.route) {
+    options.route = '/';
+  }
+  if (!options.templateContext) {
+    options.templateContext = {};
+  }
+  if (!options.template) {
+    throw new Error('template is necessary when calling render()');
   }
 
   if (!aurelia) {
@@ -58,6 +77,7 @@ async function render(options: RenderOptions) {
 
   // <input> .value property does not map to @value attribute, .defaultValue does.
   // so we need to copy that value over if we want it to serialize into HTML <input value="">
+  // without this there isn't a value attribute on any of the input tags
   [].forEach.call(document.body.querySelectorAll('input'), input => {
     if (input.value != null) 
       input.defaultValue = input.value;
@@ -116,9 +136,9 @@ function appendToHead(htmlString, toAppend) {
 }
 
 async function initializeApp(options: RenderOptions | InitializationOptions) {
-  // this needs to be a valid url format
   // without this location.pathname is set to /blank
-  // https://github.com/tmpvar/jsdom/tree/a6acac4e9dec4f859fff22676fb4e9eaa9139787#changing-the-url-of-an-existing-jsdom-window-instance
+  // this needs to be a valid url format, any url is fine as it's going to
+  // be changed through the Router of Aurelia
   jsdom.changeURL(global.window, 'http://localhost:8765');
 
   host = document.createElement('app');
@@ -128,20 +148,32 @@ async function initializeApp(options: RenderOptions | InitializationOptions) {
   aurelia.host = host;
 
   // Customized AppRouter which throws an error on 404 (instead of just logging the 404)
-  // so we can handle this event in the express/koa/etc
+  // so we can handle this event in the koa/express/etc
   aurelia.container.registerSingleton(Router, SSRRouter);
+
+  let main = null;
   
-  // need to get "require('../src/main')" out of here
-  // but it fails to import styles.css from main.ts when you do require('../src/main') this in server/index.ts
-  // probably because 
-  // require.extensions['.css'] = function (m, filename) {
-  //    return
-  // };
-  // hasn't executed yet in initializeSSR()
-  await require('../src/main').configure(aurelia);
+  try {
+    main = require(options.serverMain);
+
+    if (!main.configure) {
+      throw new Error(`Server main has no configure function`);
+    }
+  } catch (e) {
+    console.log('Unable to require() the server main file');
+    console.log(e);
+    throw e;
+  }
+
+  try {
+    await main.configure(aurelia);
+  } catch (e) {
+    console.log('Error while running the configure() method of the server main file');
+    throw e;
+  }
 
   const attribute = document.createAttribute('aurelia-app')
-  attribute.value = options.serverMainId || 'main';
+  attribute.value = options.serverMainId;
   aurelia.host.attributes.setNamedItem(attribute);
 }
 
