@@ -6,7 +6,6 @@ const root = path.join(__dirname, '../');
 const output = 'dist';
 var port = process.env.PORT || 8080;
 
-
 function serve() {
   return new Promise(resolve => {
     const app = new Koa();
@@ -15,9 +14,6 @@ function serve() {
       console.log('Request URL: ' + ctx.request.URL.toString());
       await next();        
     });
-
-    // when you run webpack through code, you could grab the bundles and css from the output:
-    // https://github.com/JeroenVinke/skeleton-navigation/blob/ssr-improvements/skeleton-typescript-webpack-experimental/server/build.ts#L21-L22
 
     app.use(aureliaKoaMiddleware({
       preboot: true,
