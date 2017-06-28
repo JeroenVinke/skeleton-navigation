@@ -31,6 +31,11 @@ export interface RenderOptions extends InitializationOptions {
    * e.g. ['body']
    */
   appRoots?: string[];
+
+  /**
+   * Options that are passed to preboot
+   */
+  prebootOptions?: any;
 }
 
 export interface InitializationOptions {
