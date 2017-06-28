@@ -27,12 +27,6 @@ export interface RenderOptions extends InitializationOptions {
   replayDelay?: number;
 
   /**
-   * Which template to use to render 404 pages where the "path" variable
-   * contains the pathname that was requested
-   */
-  notFoundTemplate?: string;
-
-  /**
    * The queryselector(s) of the approot(s)
    * e.g. ['body']
    */
