@@ -18,7 +18,7 @@ async function initializeSSR(options?: RenderOptions | InitializationOptions) {
     options = {};
   }
   if (!options.srcRoot) {
-    options.srcRoot = path.resolve(__dirname, '..', 'src');
+    options.srcRoot = path.resolve(__dirname, '..', '..', 'src');
   }
   if (!options.serverMainId) {
     options.serverMainId = 'main';
