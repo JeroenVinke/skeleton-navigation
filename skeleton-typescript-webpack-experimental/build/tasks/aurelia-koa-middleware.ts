@@ -19,19 +19,8 @@ export let aureliaKoaMiddleware = (renderOptions: RenderOptions) => {
 
       ctx.body = html;
     } catch (e) {
-      if (e.message === '404') {
-        ctx.status = 404;
-
-        if (renderOptions.notFoundTemplate) {
-          ctx.body = ejs.compile(renderOptions.notFoundTemplate)({
-            path: ctx.request.URL.pathname
-          });
-        } else {
-          ctx.body = `<html><head><title>404 not found</title></head><body><h1>Page ${ctx.request.URL.pathname} not found</h1></body></html>`;
-        }
-      } else {
-        throw e;
-      }
+      console.log(`Failed to render ${ctx.request.URL.pathname}`);
+      console.log(e);
     }
   } 
 };

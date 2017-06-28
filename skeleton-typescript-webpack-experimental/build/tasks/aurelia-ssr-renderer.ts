@@ -1,7 +1,6 @@
 import 'aurelia-polyfills';
 import {Aurelia} from 'aurelia-framework';
 import {Router, AppRouter} from 'aurelia-router';
-import {SSRRouter} from './aurelia-ssr-router';
 import {Options, NodeJsLoader} from 'aurelia-loader-nodejs';
 import {globalize} from 'aurelia-pal-nodejs';
 import * as jsdom from 'jsdom';
@@ -46,109 +45,103 @@ async function initializeSSR(options?: RenderOptions | InitializationOptions) {
   await initializeApp(options);
 }
 
-async function render(options: RenderOptions) {
-  if (!options.route) {
-    options.route = '/';
-  }
-  if (!options.templateContext) {
-    options.templateContext = {};
-  }
-  if (!options.template) {
-    throw new Error('template is necessary when calling render()');
-  }
-  if (options.replayDelay === undefined) {
-     options.replayDelay = 10;
-  }
+async function render(options: RenderOptions): Promise<string> {
+  return new Promise<string>(async (resolve, reject) => {
+    if (!options.route) {
+      options.route = '/';
+    }
+    if (!options.templateContext) {
+      options.templateContext = {};
+    }
+    if (!options.template) {
+      throw new Error('template is necessary when calling render()');
+    }
+    if (options.replayDelay === undefined) {
+      options.replayDelay = 10;
+    }
 
-  if (!__aurelia__) {
-    console.log('Aurelia hasn\'t been initialized yet server-side, initializing now...');
-    await initializeSSR(options);
-  }
+    if (!__aurelia__) {
+      console.log('Aurelia hasn\'t been initialized yet server-side, initializing now...');
+      await initializeSSR(options);
+    }
 
-  let router = __aurelia__.container.get(Router);
-  console.log(`Routing to ${options.route}`);
+    let router = __aurelia__.container.get(Router);
+    console.log(`Routing to ${options.route}`);
 
-  try {
     await router.navigate(options.route);
-  } catch (e) {
-    if (e.message.indexOf('Route not found') > -1) {
-      throw new Error('404');
-    } else {
+
+    // <input> .value property does not map to @value attribute, .defaultValue does.
+    // so we need to copy that value over if we want it to serialize into HTML <input value="">
+    // without this there isn't a value attribute on any of the input tags
+    let inputTags = Array.prototype.slice.call(document.body.querySelectorAll('input'));
+    for(let i = 0; i < inputTags.length; i++) {
+      let input = inputTags[i];
+      if (input.value != null) 
+        input.defaultValue = input.value;
+    }
+
+    let app = __host__.outerHTML;
+    let title = document.head.querySelector('title');
+    let headStyleTags = Array.prototype.slice.call(document.head.querySelectorAll('style'));
+    let html;
+
+    try {
+      html = ejs.compile(options.template)({ 
+        htmlWebpackPlugin : {
+          options: {
+            metadata: Object.assign(options.templateContext, {
+              ssr: true,
+              app: app,
+              title: title.innerHTML
+            })
+          }
+        }
+      });
+    } catch (e) {
+      console.log(`Failed to compile template`);
+      console.log(e);
       throw e;
     }
-  }
 
-  // <input> .value property does not map to @value attribute, .defaultValue does.
-  // so we need to copy that value over if we want it to serialize into HTML <input value="">
-  // without this there isn't a value attribute on any of the input tags
-  let inputTags = Array.prototype.slice.call(document.body.querySelectorAll('input'));
-  for(let i = 0; i < inputTags.length; i++) {
-    let input = inputTags[i];
-    if (input.value != null) 
-      input.defaultValue = input.value;
-  }
+    if (options.preboot) {
+      // preboot catches all events that happens before Aurelia gets loaded client-side
+      // so that they can be replayed afterwards
+      var prebootOptions = {
+        appRoot: options.appRoots || ['app'],
+        eventSelectors: [
+          // for recording changes in form elements
+          { selector: 'input,textarea', events: ['keypress', 'keyup', 'keydown', 'input', 'change'] },
+          { selector: 'select,option', events: ['change'] },
+          // when user hits return button in an input box
+          { selector: 'input', events: ['keyup'], preventDefault: true, keyCodes: [13], freeze: true },
+          // for tracking focus (no need to replay)
+          { selector: 'input,textarea', events: ['focusin', 'focusout', 'mousedown', 'mouseup'], noReplay: true },
+          // user clicks on a button
+          { selector: 'input[type="submit"],button', events: ['click'], preventDefault: true, freeze: true }
+        ]
+      };
+      var inlinePrebootCode = preboot.getInlineCode(<any>prebootOptions);
+      html = appendToHead(html, `\r\n<script>${inlinePrebootCode}</script>\r\n`);
 
-  let app = __host__.outerHTML;
-  let title = document.head.querySelector('title');
-  let headStyleTags = Array.prototype.slice.call(document.head.querySelectorAll('style'));
-  let html;
+      // preboot_browser can replay events that were stored by the preboot code
+      html = appendToBody(html, `\r\n<script src="preboot_browser.js"></script>
+  <script>
+  document.addEventListener('aurelia-started', function () {
+    // Aurelia has started client-side
+    // but the view/view-model hasn't been loaded yet so we need a small
+    // delay until we can playback all events.
+    setTimeout(function () { preboot.complete(); }, ${options.replayDelay});
+  });
+  </script>`);
+    }
 
-  try {
-    html = ejs.compile(options.template)({ 
-      htmlWebpackPlugin : {
-        options: {
-          metadata: Object.assign(options.templateContext, {
-            ssr: true,
-            app: app,
-            title: title.innerHTML
-          })
-        }
-      }
-    });
-  } catch (e) {
-    console.log(`Failed to compile template`);
-    console.log(e);
-    throw e;
-  }
-
-  if (options.preboot) {
-    // preboot catches all events that happens before Aurelia gets loaded client-side
-    // so that they can be replayed afterwards
-    var prebootOptions = {
-      appRoot: options.appRoots || ['app'],
-      eventSelectors: [
-        // for recording changes in form elements
-        { selector: 'input,textarea', events: ['keypress', 'keyup', 'keydown', 'input', 'change'] },
-        { selector: 'select,option', events: ['change'] },
-        // when user hits return button in an input box
-        { selector: 'input', events: ['keyup'], preventDefault: true, keyCodes: [13], freeze: true },
-        // for tracking focus (no need to replay)
-        { selector: 'input,textarea', events: ['focusin', 'focusout', 'mousedown', 'mouseup'], noReplay: true },
-        // user clicks on a button
-        { selector: 'input[type="submit"],button', events: ['click'], preventDefault: true, freeze: true }
-      ]
-    };
-    var inlinePrebootCode = preboot.getInlineCode(<any>prebootOptions);
-    html = appendToHead(html, `\r\n<script>${inlinePrebootCode}</script>\r\n`);
-
-    // preboot_browser can replay events that were stored by the preboot code
-    html = appendToBody(html, `\r\n<script src="preboot_browser.js"></script>
-<script>
-document.addEventListener('aurelia-started', function () {
-  // Aurelia has started client-side
-  // but the view/view-model hasn't been loaded yet so we need a small
-  // delay until we can playback all events.
-  setTimeout(function () { preboot.complete(); }, ${options.replayDelay});
-});
-</script>`);
-  }
-
-  // copy over any style tags
-  for(let i = 0; i < headStyleTags.length; i++) {
-    html = appendToHead(html, headStyleTags[i].outerHTML);
-  }
-   
-  return html;
+    // copy over any style tags
+    for(let i = 0; i < headStyleTags.length; i++) {
+      html = appendToHead(html, headStyleTags[i].outerHTML);
+    }
+    
+    resolve(html);
+  });
 }
 
 function appendToBody(htmlString, toAppend) {
@@ -170,10 +163,6 @@ async function initializeApp(options: RenderOptions | InitializationOptions) {
 
   __aurelia__ = new Aurelia(new NodeJsLoader());
   __aurelia__.host = __host__;
-
-  // Customized AppRouter which throws an error on 404 (instead of just logging the 404)
-  // so we can handle this event in the koa/express/etc
-  __aurelia__.container.registerSingleton(Router, SSRRouter);
 
   let main = null;
   
