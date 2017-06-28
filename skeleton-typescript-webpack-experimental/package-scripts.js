@@ -88,8 +88,8 @@ module.exports = {
         extractCss: `webpack-dev-server -d --devtool '#source-map' --inline --env.server --env.extractCss`,
         hmr: `webpack-dev-server -d --devtool '#source-map' --inline --hot --env.server`,
         ssr: concurrent(
-          { build: 'webpack --progress -d --env.extractCss --watch'},
-          { run: 'nodemon -L --watch server/index.ts --watch server/ssr-router.ts --watch server/aurelia-ssr.ts --watch server/serve.ts --watch server/interfaces.ts --exec "ts-node server/index"' }
+          // { build: 'webpack --progress -d --env.extractCss --watch --ssr'},
+          { run: 'nodemon -L --watch server/index.ts --watch server/aurelia-ssr-router.ts --watch server/aurelia-koa-middleware.ts --watch server/aurelia-ssr-renderer.ts --watch server/serve.ts --watch server/interfaces.ts --exec "ts-node server/index"' }
         )
       },
     },

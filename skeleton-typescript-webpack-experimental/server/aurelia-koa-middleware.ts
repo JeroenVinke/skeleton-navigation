@@ -29,6 +29,8 @@ export let aureliaKoaMiddleware = (renderOptions: RenderOptions) => {
         } else {
           ctx.body = `<html><head><title>404 not found</title></head><body><h1>Page ${ctx.request.URL.pathname} not found</h1></body></html>`;
         }
+      } else {
+        throw e;
       }
     }
   } 

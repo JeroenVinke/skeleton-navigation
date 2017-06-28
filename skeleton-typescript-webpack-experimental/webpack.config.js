@@ -17,7 +17,6 @@ const outDir = path.resolve(__dirname, 'dist');
 const srcDir = path.resolve(__dirname, 'src');
 const nodeModulesDir = path.resolve(__dirname, 'node_modules');
 const baseUrl = '/';
-const body = '';
 
 const cssRules = [
   { loader: 'css-loader' },
@@ -105,7 +104,7 @@ module.exports = ({production, server, extractCss, coverage} = {}) => ({
       } : undefined,
       metadata: {
         // available in index.ejs //
-        title, server, baseUrl, body
+        title, server, baseUrl
       },
     }),
     new CopyWebpackPlugin([

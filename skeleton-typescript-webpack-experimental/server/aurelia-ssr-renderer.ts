@@ -1,7 +1,7 @@
 import 'aurelia-polyfills';
 import {Aurelia} from 'aurelia-framework';
 import {Router, AppRouter} from 'aurelia-router';
-import {SSRRouter} from './ssr-router';
+import {SSRRouter} from './aurelia-ssr-router';
 import {Options, NodeJsLoader} from 'aurelia-loader-nodejs';
 import {globalize} from 'aurelia-pal-nodejs';
 import * as jsdom from 'jsdom';
@@ -11,6 +11,7 @@ import * as ejs from 'ejs';
 import {RenderOptions, InitializationOptions} from './interfaces';
 
 var aurelia = null;
+var host = null;
 
 async function initializeSSR(options: RenderOptions | InitializationOptions) {
   // ignore importing '.css' files, useful only for Webpack codebases that do stuff like require('./file.css'):
@@ -62,17 +63,25 @@ async function render(options: RenderOptions) {
       input.defaultValue = input.value;
   });
 
-  let body = document.body.outerHTML;
+  let app = document.body.outerHTML;
+  let html;
 
-  let html = ejs.compile(options.template)({ 
-    htmlWebpackPlugin : {
-      options: {
-        metadata: Object.assign(options.templateContext, {
-          body: body
-        })
+  try {
+    html = ejs.compile(options.template)({ 
+      htmlWebpackPlugin : {
+        options: {
+          metadata: Object.assign(options.templateContext, {
+            ssr: true,
+            app: app
+          })
+        }
       }
-    }
-  });
+    });
+  } catch (e) {
+    console.log(`Failed to compile template`);
+    console.log(e);
+    throw e;
+  }
 
   if (options.preboot) {
     // preboot catches all events that happens before Aurelia gets loaded client-side
@@ -81,37 +90,28 @@ async function render(options: RenderOptions) {
       appRoot: options.appRoots || ['body']
     };
     var inlinePrebootCode = preboot.getInlineCode(prebootOptions);
-    html = appendBeforeHead(html, `\r\n<script>${inlinePrebootCode}</script>\r\n`);
+    html = appendToHead(html, `\r\n<script>${inlinePrebootCode}</script>\r\n`);
 
     // preboot_browser can replay events that were stored by the preboot code
-    html = appendBeforeBody(html, `\r\n<script src="preboot_browser.js"></script>
-    <script>
-      document.addEventListener('aurelia-started', function () {
-        // Aurelia has started client-side
-        // but the view/view-model hasn't been loaded yet so we need a small
-        // delay until we can playback all events.
-        setTimeout(function () { preboot.complete(); }, ${options.replayDelay || 10});
-      });
-    </script>`);
-  }
-  
-
-  for (let bundle of options.bundles || []) {
-    html = appendBeforeBody(html, `\r\n<script src="${bundle}" type="text/javascript"></script>`);
-  }
-
-  for (let stylesheet of options.stylesheets || []) {
-    html = appendBeforeHead(html, `<link rel="stylesheet" type="text/css" href="${stylesheet}">`);
+    html = appendToBody(html, `\r\n<script src="preboot_browser.js"></script>
+<script>
+document.addEventListener('aurelia-started', function () {
+  // Aurelia has started client-side
+  // but the view/view-model hasn't been loaded yet so we need a small
+  // delay until we can playback all events.
+  setTimeout(function () { preboot.complete(); }, ${options.replayDelay || 10});
+});
+</script>`);
   }
 
   return html;
 }
 
-function appendBeforeBody(htmlString, toAppend) {
+function appendToBody(htmlString, toAppend) {
   return htmlString.replace('</body>', `${toAppend}</body>`);
 }
 
-function appendBeforeHead(htmlString, toAppend) {
+function appendToHead(htmlString, toAppend) {
   return htmlString.replace('</head>', `${toAppend}</head>`);
 }
 
@@ -121,9 +121,11 @@ async function initializeApp(options: RenderOptions | InitializationOptions) {
   // https://github.com/tmpvar/jsdom/tree/a6acac4e9dec4f859fff22676fb4e9eaa9139787#changing-the-url-of-an-existing-jsdom-window-instance
   jsdom.changeURL(global.window, 'http://localhost:8765');
 
+  host = document.createElement('app');
+  document.body.appendChild(host);
+
   aurelia = new Aurelia(new NodeJsLoader());
-  aurelia.host = document.body;
-  // ;(aurelia as any).configModuleId = options.serverMainId || 'main';
+  aurelia.host = host;
 
   // Customized AppRouter which throws an error on 404 (instead of just logging the 404)
   // so we can handle this event in the express/koa/etc
@@ -139,8 +141,8 @@ async function initializeApp(options: RenderOptions | InitializationOptions) {
   await require('../src/main').configure(aurelia);
 
   const attribute = document.createAttribute('aurelia-app')
-  attribute.value = options.clientMainId || 'main';
-  document.body.attributes.setNamedItem(attribute);
+  attribute.value = options.serverMainId || 'main';
+  aurelia.host.attributes.setNamedItem(attribute);
 }
 
 export {

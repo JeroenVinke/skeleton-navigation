@@ -12,16 +12,6 @@ export interface RenderOptions extends InitializationOptions {
   preboot: boolean;
 
   /**
-   * Array of paths to stylesheets that are sent as part of the server view
-   */
-  stylesheets: Array<string>;
-
-  /**
-   * Array of paths to bundles that are sent as part of the server view
-   */
-  bundles: Array<string>;
-
-  /**
    * Context (object) that is used to generate the index.html template
    */
   templateContext: any;
@@ -59,11 +49,6 @@ export interface InitializationOptions {
    * The result of require('../src/main') where main is the server main
    */
   // serverMain: { configure: Promise<any> };
-
-  /**
-   * The module id of the client main (e.g. 'main')
-   */
-  clientMainId?: string;
 
   /**
    * The directory containing the source code (e.g. 'src')

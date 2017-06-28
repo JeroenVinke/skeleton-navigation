@@ -6,7 +6,6 @@ async function start(done) {
   // and is optional. Without this statement Aurelia will be initialized
   // when the first request hits the web server
   await initializeSSR({
-    clientMainId: 'main',
     serverMainId: 'main'
   });
   await serve();

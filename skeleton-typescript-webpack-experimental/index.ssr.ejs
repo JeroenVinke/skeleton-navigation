@@ -5,8 +5,14 @@
     <title><%- htmlWebpackPlugin.options.metadata.title %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <base href="<%- htmlWebpackPlugin.options.metadata.baseUrl %>">
-    <!-- imported CSS are concatenated and added automatically -->
+    
+    <link href="dist/1.css" rel="stylesheet">
   </head>
-  <body aurelia-app="main">
+
+  <body>
+    <%- htmlWebpackPlugin.options.metadata.app %>
+
+    <script src="/dist/app.bundle.js"></script>
+    <script src="/dist/vendor.bundle.js"></script>
   </body>
 </html>

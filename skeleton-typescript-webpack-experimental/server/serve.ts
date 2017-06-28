@@ -27,7 +27,7 @@ function serve() {
         title: 'Aurelia Server Side Rendering',
         baseUrl: '/'
       },
-      template: require('fs').readFileSync('./index.ejs', 'utf-8')
+      template: require('fs').readFileSync('./index.ssr.ejs', 'utf-8')
     }));
 
     app.use(require('koa-static')(root));
