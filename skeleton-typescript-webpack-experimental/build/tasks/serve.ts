@@ -15,7 +15,7 @@ gulp.task('serve', () => {
   });
 
   app.use(aureliaKoaMiddleware({
-    preboot: false,
+    preboot: true,
     templateContext: {
       title: 'Aurelia Server Side Rendering',
       baseUrl: '/'
