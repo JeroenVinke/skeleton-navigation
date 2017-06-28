@@ -1,17 +1,15 @@
-import {initializeSSR} from './aurelia-ssr';
-import {build} from './build';
 import {serve} from './serve';
-
-var stylesheets = [];
-var bundles = [];
+import {initializeSSR} from './aurelia-ssr-renderer';
 
 async function start(done) {
-  await initializeSSR({ 
+  // this causes Aurelia to be initialized server-side
+  // and is optional. Without this statement Aurelia will be initialized
+  // when the first request hits the web server
+  await initializeSSR({
     clientMainId: 'main',
     serverMainId: 'main'
   });
-  let assets = await build();
-  await serve(assets);
+  await serve();
   done();
 }
 

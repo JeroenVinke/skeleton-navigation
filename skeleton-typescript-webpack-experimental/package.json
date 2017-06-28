@@ -12,9 +12,9 @@
   "scripts": {
     "test": "nps test",
     "start": "node server/index.js",
-    "ssr": "nps ssr"
+    "ssr": "nps webpack.server.ssr"
   },
-  "engines":{
+  "engines": {
     "node": "8.1.2"
   },
   "jest": {
@@ -25,34 +25,34 @@
     "moduleFileExtensions": [
       "js",
       "json",
-      "ts",
-      "tsx"
+      "ts"
     ],
-    "resetModules": false,
     "transform": {
       "^.+\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
-    "testResultsProcessor": "<rootDir>/node_modules/ts-jest/coverageprocessor.js",
     "testRegex": "\\.spec\\.(ts|js)x?$",
     "setupFiles": [
       "<rootDir>/test/jest-pretest.ts"
     ],
     "testEnvironment": "node",
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "src/**/*.{js,ts}"
-    ],
     "moduleNameMapper": {
       "aurelia-(.*)": "<rootDir>/node_modules/$1"
     },
-    "coverageDirectory": "<rootDir>/__coverage__",
-    "coverageReporters": [
-      "text",
-      "json"
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.{js,ts}",
+      "!**/*.spec.{js,ts}",
+      "!**/node_modules/**",
+      "!**/test/**"
     ],
-    "globals": {
-      "__TS_CONFIG__": "tsconfig.test.json"
-    }
+    "coverageDirectory": "<rootDir>/test/coverage-jest",
+    "coverageReporters": [
+      "json",
+      "lcov",
+      "text",
+      "html"
+    ],
+    "mapCoverage": true
   },
   "devDependencies": {
     "@types/jest": "19.2.4",
@@ -60,36 +60,22 @@
     "@types/lodash": "4.14.65",
     "@types/node": "7.0.29",
     "@types/webpack": "2.2.15",
-    "aurelia-history": "^1.0.0",
-    "aurelia-loader-nodejs": "^1.0.1",
-    "aurelia-pal-nodejs": "1.0.0-beta.1.0.0",
     "aurelia-protractor-plugin": "^1.0.1",
-    "aurelia-template-lint-webpack-loader": "^1.0.2",
     "aurelia-testing": "^1.0.0-beta.2.0.1",
     "aurelia-webpack-plugin": "^2.0.0-rc.2",
     "awesome-typescript-loader": "^3.0.0-beta.18",
-    "better-npm-run": "0.0.14",
-    "bundle-loader": "^0.5.4",
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.28.4",
-    "del-cli": "^0.2.1",
-    "ecstatic": "^2.1.0",
-    "ejs": "^2.5.6",
-    "enhanced-resolve": "^3.0.3",
     "expose-loader": "^0.7.1",
     "extract-text-webpack-plugin": "2.1.2",
     "file-loader": "^0.11.2",
     "html-webpack-plugin": "^2.26.0",
     "http-server": "^0.9.0",
     "jest": "^18.1.0",
-    "koa": "^2.3.0",
-    "koa-router": "^7.2.1",
-    "koa-static": "^3.0.0",
-    "nodemon": "^1.11.0",
+    "jest-cli": "20.0.4",
     "nps": "5.3.1",
     "nps-utils": "1.2.0",
     "postcss-loader": "2.0.6",
-    "preboot": "^4.5.2",
     "protractor": "^5.0.0",
     "style-loader": "0.18.2",
     "ts-jest": "^18.0.1",
@@ -98,10 +84,7 @@
     "url-loader": "^0.5.7",
     "wait-on": "^2.0.1",
     "webpack": "2.6.1",
-    "webpack-dashboard": "^0.2.1",
-    "webpack-dependency-suite": "^2.1.2",
-    "webpack-dev-server": "2.4.5",
-    "webpack-md5-hash": "^0.0.5"
+    "webpack-dev-server": "2.4.5"
   },
   "dependencies": {
     "aurelia-bootstrapper": "2.1.1",
@@ -113,6 +96,8 @@
     "aurelia-pal-browser": "1.2.1",
     "aurelia-polyfills": "1.2.1",
     "aurelia-router": "1.3.0",
+    "aurelia-history": "^1.0.0",
+    "aurelia-loader-nodejs": "^1.0.1",
     "aurelia-templating": "1.4.2",
     "aurelia-templating-binding": "1.3.0",
     "aurelia-templating-resources": "1.4.0",
@@ -121,6 +106,11 @@
     "bootstrap": "^3.3.7",
     "font-awesome": "^4.7.0",
     "isomorphic-fetch": "^2.2.1",
-    "jquery": "^3.1.1"
+    "jquery": "^3.1.1",
+    "koa": "^2.3.0",
+    "koa-static": "^3.0.0",
+    "aurelia-pal-nodejs": "1.0.0-beta.1.0.0",
+    "ejs": "^2.5.6",
+    "preboot": "^4.5.2"
   }
 }

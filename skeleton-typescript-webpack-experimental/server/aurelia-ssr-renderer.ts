@@ -8,11 +8,11 @@ import * as jsdom from 'jsdom';
 import * as preboot from 'preboot';
 import * as path from 'path';
 import * as ejs from 'ejs';
-import {RenderOptions, InitializeOptions} from './interfaces';
+import {RenderOptions, InitializationOptions} from './interfaces';
 
 var aurelia = null;
 
-async function initializeSSR(options: InitializeOptions) {
+async function initializeSSR(options: RenderOptions | InitializationOptions) {
   // ignore importing '.css' files, useful only for Webpack codebases that do stuff like require('./file.css'):
   require.extensions['.css'] = function (m, filename) {
     return
@@ -35,6 +35,11 @@ async function initializeSSR(options: InitializeOptions) {
 async function render(options: RenderOptions) {
   if (!options.route || !options.templateContext || !options.template) {
     throw new Error('Missing property (route | templateContext | template)');
+  }
+
+  if (!aurelia) {
+    console.log('Aurelia hasn\'t been initialized yet server-side, initializing now...');
+    await initializeSSR(options);
   }
 
   let router = aurelia.container.get(Router);
@@ -73,7 +78,7 @@ async function render(options: RenderOptions) {
     // preboot catches all events that happens before Aurelia gets loaded client-side
     // so that they can be replayed afterwards
     var prebootOptions = {
-      appRoot: ['body']
+      appRoot: options.appRoots || ['body']
     };
     var inlinePrebootCode = preboot.getInlineCode(prebootOptions);
     html = appendBeforeHead(html, `\r\n<script>${inlinePrebootCode}</script>\r\n`);
@@ -110,16 +115,17 @@ function appendBeforeHead(htmlString, toAppend) {
   return htmlString.replace('</head>', `${toAppend}</head>`);
 }
 
-async function initializeApp(options) {
+async function initializeApp(options: RenderOptions | InitializationOptions) {
   // this needs to be a valid url format
   // without this location.pathname is set to /blank
   // https://github.com/tmpvar/jsdom/tree/a6acac4e9dec4f859fff22676fb4e9eaa9139787#changing-the-url-of-an-existing-jsdom-window-instance
   jsdom.changeURL(global.window, 'http://localhost:8765');
-  aurelia = new Aurelia(new NodeJsLoader())
-  aurelia.host = document.body
-  ;(aurelia as any).configModuleId = options.serverMainId;
 
-  // Custom AppRouter which throws an error on 404
+  aurelia = new Aurelia(new NodeJsLoader());
+  aurelia.host = document.body;
+  // ;(aurelia as any).configModuleId = options.serverMainId || 'main';
+
+  // Customized AppRouter which throws an error on 404 (instead of just logging the 404)
   // so we can handle this event in the express/koa/etc
   aurelia.container.registerSingleton(Router, SSRRouter);
   
@@ -133,7 +139,7 @@ async function initializeApp(options) {
   await require('../src/main').configure(aurelia);
 
   const attribute = document.createAttribute('aurelia-app')
-  attribute.value = options.clientMainId;
+  attribute.value = options.clientMainId || 'main';
   document.body.attributes.setNamedItem(attribute);
 }
 

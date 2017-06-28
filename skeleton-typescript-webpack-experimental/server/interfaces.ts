@@ -1,8 +1,29 @@
-export class RenderOptions {
-  route: string;
+export interface RenderOptions extends InitializationOptions {
+  /**
+   * The pathname of the route (e.g. /users)
+   * will be sent to router.navigate(<route>)
+   */
+  route?: string;
+
+  /**
+   * Whether or not to use preboot. Preboot allows you to record (and playback) events
+   * that occur before the client-app is loaded
+   */
   preboot: boolean;
+
+  /**
+   * Array of paths to stylesheets that are sent as part of the server view
+   */
   stylesheets: Array<string>;
+
+  /**
+   * Array of paths to bundles that are sent as part of the server view
+   */
   bundles: Array<string>;
+
+  /**
+   * Context (object) that is used to generate the index.html template
+   */
   templateContext: any;
 
   /**
@@ -14,13 +35,25 @@ export class RenderOptions {
    * When using preboot, how long is the delay between Aurelia start and before the view has loaded
    */
   replayDelay?: number;
+
+  /**
+   * Which template to use to render 404 pages where the "path" variable
+   * contains the pathname that was requested
+   */
+  notFoundTemplate?: string;
+
+  /**
+   * The queryselector(s) of the approot(s)
+   * e.g. ['body']
+   */
+  appRoots?: string[];
 }
 
-export class InitializeOptions {
+export interface InitializationOptions {
   /**
    * The module id of the server main file (e.g. 'main')
    */
-  serverMainId: string;
+  serverMainId?: string;
 
   /**
    * The result of require('../src/main') where main is the server main
@@ -30,7 +63,7 @@ export class InitializeOptions {
   /**
    * The module id of the client main (e.g. 'main')
    */
-  clientMainId: string;
+  clientMainId?: string;
 
   /**
    * The directory containing the source code (e.g. 'src')

@@ -1,7 +1,8 @@
-import {render} from './aurelia-ssr';
+import {render} from './aurelia-ssr-renderer';
 import * as ejs from 'ejs';
+import {RenderOptions} from './interfaces';
 
-export let aureliaKoaMiddleware = renderOptions => {
+export let aureliaKoaMiddleware = (renderOptions: RenderOptions) => {
   return async (ctx, next) => {
     // skip requests where urls have an extension
     let extensionMatcher = /^.*\.[^\\]+$/;
