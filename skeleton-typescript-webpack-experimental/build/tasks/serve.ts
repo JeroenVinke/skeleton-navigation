@@ -2,7 +2,7 @@ import * as Koa from 'koa';
 import * as path from 'path';
 import * as gulp from 'gulp';
 import {paths} from '../paths';
-import {aureliaKoaMiddleware} from './aurelia-koa-middleware';
+import {aureliaKoaMiddleware} from './external/aurelia-koa-middleware';
 
 var port = process.env.PORT || 8080;
 
@@ -28,5 +28,5 @@ gulp.task('serve', () => {
 
   console.log('Starting server....');
   app.listen(port);
-  console.log(`Listening server-side-rendered at http://localhost:${port}/`);
+  console.log(`Listening at http://localhost:${port}/`);
 });

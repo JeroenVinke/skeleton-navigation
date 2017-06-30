@@ -107,7 +107,7 @@ async function render(options: RenderOptions): Promise<string> {
       // preboot catches all events that happens before Aurelia gets loaded client-side
       // so that they can be replayed afterwards
       var prebootOptions = Object.assign({
-        appRoot: options.appRoots || ['app']
+        appRoot: options.appRoots || ['body']
       }, options.prebootOptions);
       var inlinePrebootCode = preboot.getInlineCode(<any>prebootOptions);
       html = appendToHead(html, `\r\n<script>${inlinePrebootCode}</script>\r\n`);

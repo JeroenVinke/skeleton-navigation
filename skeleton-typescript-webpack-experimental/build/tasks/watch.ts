@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as gulp from 'gulp';
 import {paths} from '../paths';
-import {initializeSSR} from './aurelia-ssr-renderer';
+import {initializeSSR} from './external/aurelia-ssr-renderer';
 
 gulp.task('init', async () => {
   // this causes Aurelia to be initialized server-side
