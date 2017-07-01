@@ -1,7 +1,7 @@
-import {render} from './aurelia-ssr-renderer';
-import {RenderOptions} from './interfaces';
+import {render, start} from './aurelia-ssr-renderer';
+import {RenderOptions, AppInitializationOptions} from './interfaces';
 
-export let aureliaKoaMiddleware = (renderOptions: RenderOptions) => {
+export let aureliaKoaMiddleware = (renderOptions: RenderOptions, initializationOptions?: AppInitializationOptions) => {
   return (ctx, next) => {
     const pathname = ctx.request.URL.pathname;
 
@@ -11,7 +11,14 @@ export let aureliaKoaMiddleware = (renderOptions: RenderOptions) => {
       return next();
     }
 
-    return render(Object.assign({ route: pathname }, renderOptions))
+    let promise = Promise.resolve();
+
+    if (initializationOptions) {
+      promise = start(initializationOptions);
+    }
+
+    return promise
+    .then(() => render(Object.assign({ route: pathname }, renderOptions)))
     .then(html => {
       ctx.body = html;
     })
@@ -19,6 +26,6 @@ export let aureliaKoaMiddleware = (renderOptions: RenderOptions) => {
       ctx.body = `<html><body>Failed to render ${pathname}</body></html>`;
       console.log(`Failed to render ${pathname}`);
       console.log(e);
-    })
+    });
   } 
 };

@@ -1,4 +1,4 @@
-export interface RenderOptions extends InitializationOptions {
+export interface RenderOptions {
   /**
    * The pathname of the route (e.g. /users)
    * will be sent to router.navigate(<route>)
@@ -36,26 +36,23 @@ export interface RenderOptions extends InitializationOptions {
    * Options that are passed to preboot
    */
   prebootOptions?: any;
-
-  /**
-   * The main class to use as entry point for Aurelia (server side)
-   */
-  main: { configure: (aurelia) => void };
 }
 
 export interface InitializationOptions {
   /**
-   * The module id of the server main file (e.g. 'main')
-   */
-  serverMainId?: string;
-
-  /**
-   * The path to the server main (defaults to path.join(options.srcRoot, options.serverMain))
-   */
-  serverMain?: string;
-
-  /**
    * The directory containing the source code (e.g. 'src')
    */
   srcRoot?: string;
+}
+
+export interface AppInitializationOptions {
+  /**
+   * The main class to use as entry point for Aurelia (server side)
+   */
+  main: { configure: (aurelia) => Promise<void> };
+  
+  /**
+   * The module id of the server main file (e.g. 'main')
+   */
+  serverMainId?: string;
 }

@@ -1,12 +1,46 @@
-const Aurelia = require('aurelia-framework');
-const {Router, AppRouter} = require('aurelia-router');
-const {Options, NodeJsLoader} = require('aurelia-loader-nodejs');
-const preboot = require('preboot');
-const path = require('path');
-const ejs = require('ejs');
+import {Aurelia} from 'aurelia-framework';
+import {Router} from 'aurelia-router';
+import {Options} from 'aurelia-loader-nodejs';
+import {WebpackLoader} from 'aurelia-loader-webpack';
+import {globalize} from 'aurelia-pal-nodejs';
+import * as jsdom from 'jsdom';
+import * as preboot from 'preboot';
+import * as path from 'path';
+import * as ejs from 'ejs';
+import {RenderOptions, InitializationOptions, AppInitializationOptions} from './interfaces';
 
-async function render() {
+var __aurelia__ = null;
+var __host__ = null;
+
+function setup(options?: InitializationOptions) {
+  if (!options) {
+    options = {};
+  }
+  if (!options.srcRoot) {
+    options.srcRoot = path.resolve(__dirname, 'src');
+  }
+
+  // set the root directory where the aurelia loader will resolve to
+  // this is the 'src' dir in case of skeleton
+  Options.relativeToDir = options.srcRoot;
+
+  // initialize PAL and set globals (window, document, etc.)
+  globalize();
+  
+  // aurelia expects console.debug
+  // this also allows you to see aurelia logging in cmd/terminal
+  console.debug = console.log;
+
+  __host__ = document.createElement('app');
+  document.body.appendChild(__host__);
+}
+
+async function render(options: RenderOptions) {
   return new Promise(async (resolve, reject) => {
+    if (!__aurelia__) {
+      return reject(new Error('Aurelia has not yet been started. Call start() on the engine before any render() call'));
+    }
+
     if (!options.route) {
       options.route = '/';
     }
@@ -18,11 +52,6 @@ async function render() {
     }
     if (options.replayDelay === undefined) {
       options.replayDelay = 10;
-    }
-
-    if (!__aurelia__) {
-      console.log('Aurelia hasn\'t been initialized yet server-side, initializing now...');
-      await initializeSSR(options);
     }
 
     let router = __aurelia__.container.get(Router);
@@ -101,40 +130,46 @@ function appendToHead(htmlString, toAppend) {
   return htmlString.replace('</head>', `${toAppend}</head>`);
 }
 
-async function initializeApp(options) {
-  // without this location.pathname is set to /blank
-  // this needs to be a valid url format, any url is fine as it's going to
-  // be changed through the Router of Aurelia
+function start(options: AppInitializationOptions) {
+  if (__aurelia__) {
+    return Promise.resolve();
+  }
+
+  if (!options.serverMainId) {
+    options.serverMainId = 'main';
+  }
+
+  // without this location.pathname is set to /blank by jsdom
+  // this needs to be a valid url format, any url is fine
   jsdom.changeURL(global.window, 'http://localhost:8765');
 
   __host__ = document.createElement('app');
   document.body.appendChild(__host__);
 
-  __aurelia__ = new Aurelia(new NodeJsLoader());
+  __aurelia__ = new Aurelia(new WebpackLoader());
   __aurelia__.host = __host__;
-
-  let main = null;
-  
-  try {
-    // main = require(options.serverMain);
-
-    if (!main.configure) {
-      throw new Error(`Server main has no configure function`);
-    }
-  } catch (e) {
-    console.log('Unable to require() the server main file');
-    console.log(e);
-    throw e;
-  }
-
-  try {
-    await main.configure(__aurelia__);
-  } catch (e) {
-    console.log('Error while running the configure() method of the server main file');
-    throw e;
-  }
 
   const attribute = document.createAttribute('aurelia-app')
   attribute.value = options.serverMainId;
   __aurelia__.host.attributes.setNamedItem(attribute);
+
+  var main = options.main;
+
+  if (!main.configure) { 
+    throw new Error(`Server main has no configure function`); 
+  } 
+
+  return main.configure(__aurelia__)
+  .then(() => {
+    console.log('Aurelia initialized server side');
+  }).catch(e => { 
+    console.log('Error while running the configure() method of the server main file'); 
+    throw e; 
+  }); 
 }
+
+export {
+  setup,
+  start,
+  render
+};

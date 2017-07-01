@@ -21,8 +21,9 @@ app.use(aureliaKoaMiddleware({
     title: 'Aurelia Server Side Rendering',
     baseUrl: '/'
   },
-  main: require('./src/main'),
   template: require('fs').readFileSync(path.resolve('./index.ssr.ejs'), 'utf-8')
+}, {
+  main: require('./src/main')
 }));
 
 app.use(require('koa-static')(path.resolve(__dirname, '..')));
