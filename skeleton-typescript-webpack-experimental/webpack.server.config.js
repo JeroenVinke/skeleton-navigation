@@ -38,7 +38,7 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
   entry: {
     server: './server'
   },
-  externals: ['ejs', 'jsdom','ajv', 'aurelia-pal', 'aurelia-pal-nodejs', 'aurelia-loader', 'aurelia-loader-nodejs', 'encoding', 'memoize'],
+  externals: ['ejs', 'jsdom', 'any-promise', 'aurelia-pal', 'aurelia-pal-nodejs', 'aurelia-loader-nodejs', 'encoding', 'memoize'],
   output: {
     path: outDir,
     publicPath: baseUrl,
