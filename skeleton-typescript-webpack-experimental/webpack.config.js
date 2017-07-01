@@ -111,7 +111,7 @@ module.exports = ({production, server, extractCss, coverage} = {}) => ({
       { from: 'static/favicon.ico', to: 'favicon.ico' }
     ]),
     ...when(extractCss, new ExtractTextPlugin({
-      filename: production ? '[contenthash].css' : '[id].css',
+      filename: '[id].css',
       allChunks: true,
     })),
     ...when(production, new CommonsChunkPlugin({
