@@ -18,12 +18,6 @@ function setup(options) {
   if (!options.srcRoot) {
     options.srcRoot = path.resolve(__dirname, 'src');
   }
-  if (!options.serverMainId) {
-    options.serverMainId = 'main';
-  }
-  if (!options.serverMain) {
-    options.serverMain = path.join(options.srcRoot, options.serverMainId);
-  }
 
   // set the root directory where the aurelia loader will resolve to
   // this is the 'src' dir in case of skeleton
@@ -137,9 +131,12 @@ function appendToHead(htmlString, toAppend) {
 }
 
 function initializeApp(options) {
-  // without this location.pathname is set to /blank
-  // this needs to be a valid url format, any url is fine as it's going to
-  // be changed through the Router of Aurelia
+  if (!options.serverMainId) {
+    options.serverMainId = 'main';
+  }
+
+  // without this location.pathname is set to /blank by jsdom
+  // this needs to be a valid url format, any url is fine
   jsdom.changeURL(global.window, 'http://localhost:8765');
 
   __host__ = document.createElement('app');

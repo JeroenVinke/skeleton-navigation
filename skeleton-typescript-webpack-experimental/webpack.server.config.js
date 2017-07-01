@@ -36,12 +36,12 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
     modules: [srcDir, 'node_modules'],
   },
   entry: {
-    test: ['./index']
+    server: './server'
   },
   externals: ['ejs', 'jsdom','ajv', 'aurelia-pal', 'aurelia-pal-nodejs', 'aurelia-loader', 'aurelia-loader-nodejs', 'encoding', 'memoize'],
   output: {
     path: outDir,
-    publicPath: path.resolve(__dirname, '..'),
+    publicPath: baseUrl,
     filename: production ? '[name].[chunkhash].bundle.js' : '[name].bundle.js',
     sourceMapFilename: production ? '[name].[chunkhash].bundle.map' : '[name].bundle.map',
     chunkFilename: production ? '[name].[chunkhash].chunk.js' : '[id].chunk.js',
@@ -92,39 +92,36 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
     ]
   },
   plugins: [
-
-    // 'aurelia-pal-nodejs', 'aurelia-loader-nodejs', 
-
     new AureliaPlugin(),
-    // new ProvidePlugin({
-    //   'Promise': 'bluebird',
-    //   '$': 'jquery',
-    //   'jQuery': 'jquery',
-    //   'window.jQuery': 'jquery',
-    // }),
-    // new TsConfigPathsPlugin(),
-    // new CheckerPlugin(),
-    // new HtmlWebpackPlugin({
-    //   template: 'index.ejs',
-    //   minify: production ? {
-    //     removeComments: true,
-    //     collapseWhitespace: true
-    //   } : undefined,
-    //   metadata: {
-    //     // available in index.ejs //
-    //     title, server, baseUrl
-    //   },
-    // }),
-    // new CopyWebpackPlugin([
-    //   { from: 'static/favicon.ico', to: 'favicon.ico' },
-    //   { from: 'node_modules/preboot/__dist/preboot_browser.js', to: 'preboot_browser.js' }
-    // ]),
-    // ...when(extractCss, new ExtractTextPlugin({
-    //   filename: production ? '[contenthash].css' : '[id].css',
-    //   allChunks: true,
-    // })),
-    // ...when(production, new CommonsChunkPlugin({
-    //   name: 'common'
-    // }))
+    new ProvidePlugin({
+      'Promise': 'bluebird',
+      '$': 'jquery',
+      'jQuery': 'jquery',
+      'window.jQuery': 'jquery',
+    }),
+    new TsConfigPathsPlugin(),
+    new CheckerPlugin(),
+    new HtmlWebpackPlugin({
+      template: 'index.ejs',
+      minify: production ? {
+        removeComments: true,
+        collapseWhitespace: true
+      } : undefined,
+      metadata: {
+        // available in index.ejs //
+        title, server, baseUrl
+      },
+    }),
+    new CopyWebpackPlugin([
+      { from: 'static/favicon.ico', to: 'favicon.ico' },
+      { from: 'node_modules/preboot/__dist/preboot_browser.js', to: 'preboot_browser.js' }
+    ]),
+    ...when(extractCss, new ExtractTextPlugin({
+      filename: production ? '[contenthash].css' : '[id].css',
+      allChunks: true,
+    })),
+    ...when(production, new CommonsChunkPlugin({
+      name: 'common'
+    }))
   ],
 })
