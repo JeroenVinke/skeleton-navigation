@@ -1,58 +1,57 @@
+import * as Koa from 'koa';
+import * as path from 'path';
+import {setup} from './build/tasks/external/aurelia-ssr-renderer';
+import {aureliaKoaMiddleware} from './build/tasks/external/aurelia-koa-middleware';
+import {WebpackLoader} from 'aurelia-loader-webpack';
 
-const Aurelia = require('aurelia-framework').Aurelia;
-const initializeSSR = require('./build/tasks/external/aurelia-ssr-renderer').initializeSSR;
-const {Options, NodeJsLoader} = require('aurelia-loader-nodejs');
-const {WebpackLoader} = require('aurelia-loader-webpack');
-const pal = require('aurelia-pal');
-const path = require('path');
+setup();
+
+var port = process.env.PORT || 8080;
+
+const app = new Koa();
+
+app.use(async (ctx, next) => {
+  console.log('Request URL: ' + ctx.request.URL.toString());
+  await next();        
+});
+
+app.use(aureliaKoaMiddleware({
+  preboot: true,
+  templateContext: {
+    title: 'Aurelia Server Side Rendering',
+    baseUrl: '/'
+  },
+  main: require('./src/main'),
+  template: require('fs').readFileSync(path.resolve('./index.ssr.ejs'), 'utf-8')
+}));
+
+app.use(require('koa-static')(path.resolve(__dirname)));
+app.use(require('koa-static')(path.resolve('dist')));
+
+console.log('Starting server....');
+app.listen(port);
+console.log(`Listening at http://localhost:${port}/`);
+
+
+// initializeSSR();
+
+// let main = require('./src/main');
+
+// main.configure(__aurelia__)
+// .then(() => {
+
+//   console.log(document.body.outerHTML);
+// }).catch(e => {
+//   console.log('Error while running the configure() method of the server main file');
+//   throw e;
+// });
+
+
 
 process.on('unhandledRejection', error => {
   console.log('unhandledRejection', error.message);
   console.log(error.stack);
 });
-
-initializeSSR({
-  srcRoot: path.resolve(__dirname, '..', 'src')
-});
-
-
-var __host__ = document.createElement('app');
-document.body.appendChild(__host__);
-
-var __aurelia__ = new Aurelia(new WebpackLoader());
-__aurelia__.host = __host__;
-
-let main = null;
-
-try {
-  main = require('./src/main');
-
-  if (!main.configure) {
-    throw new Error(`Server main has no configure function`);
-  }
-} catch (e) {
-  console.log('Unable to require() the server main file');
-  console.log(e);
-  throw e;
-}
-
-  const attribute = document.createAttribute('aurelia-app')
-  attribute.value = 'main';
-  __aurelia__.host.attributes.setNamedItem(attribute);
-
-main.configure(__aurelia__)
-.then(() => {
-
-  console.log(document.body.outerHTML);
-}).catch(e => {
-  console.log('Error while running the configure() method of the server main file');
-  throw e;
-});
-
-
-
-
-
 
 
 

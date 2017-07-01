@@ -36,6 +36,11 @@ export interface RenderOptions extends InitializationOptions {
    * Options that are passed to preboot
    */
   prebootOptions?: any;
+
+  /**
+   * The main class to use as entry point for Aurelia (server side)
+   */
+  main: { configure: (aurelia) => void };
 }
 
 export interface InitializationOptions {
