@@ -1,52 +1,12 @@
-import 'aurelia-polyfills';
-import {Aurelia} from 'aurelia-framework';
-import {Router, AppRouter} from 'aurelia-router';
-import {Options, NodeJsLoader} from 'aurelia-loader-nodejs';
-import {globalize} from 'aurelia-pal-nodejs';
-import * as jsdom from 'jsdom';
-import * as preboot from 'preboot';
-import * as path from 'path';
-import * as ejs from 'ejs';
-import {RenderOptions, InitializationOptions} from './interfaces';
+const Aurelia = require('aurelia-framework');
+const {Router, AppRouter} = require('aurelia-router');
+const {Options, NodeJsLoader} = require('aurelia-loader-nodejs');
+const preboot = require('preboot');
+const path = require('path');
+const ejs = require('ejs');
 
-var __aurelia__ = null;
-var __host__ = null;
-
-async function initializeSSR(options?: RenderOptions | InitializationOptions) {
-  if (!options) {
-    options = {};
-  }
-  if (!options.srcRoot) {
-    options.srcRoot = path.resolve(__dirname, '..', '..', 'src');
-  }
-  if (!options.serverMainId) {
-    options.serverMainId = 'main';
-  }
-  if (!options.serverMain) {
-    options.serverMain = path.join(options.srcRoot, options.serverMainId);
-  }
-
-  // ignore importing '.css' files, useful only for Webpack codebases that do stuff like require('./file.css'):
-  require.extensions['.css'] = function (m, filename) {
-    return
-  };
-
-  // set the root directory where the aurelia loader will resolve to
-  // this is the 'src' dir in case of skeleton
-  Options.relativeToDir = options.srcRoot;
-
-  // initialize PAL and set globals (window, document, etc.)
-  globalize();
-  
-  // aurelia expects console.debug
-  // this also allows you to see aurelia logging in cmd/terminal
-  console.debug = console.log;
-
-  await initializeApp(options);
-}
-
-async function render(options: RenderOptions): Promise<string> {
-  return new Promise<string>(async (resolve, reject) => {
+async function render() {
+  return new Promise(async (resolve, reject) => {
     if (!options.route) {
       options.route = '/';
     }
@@ -109,7 +69,7 @@ async function render(options: RenderOptions): Promise<string> {
       var prebootOptions = Object.assign({
         appRoot: options.appRoots || ['body']
       }, options.prebootOptions);
-      var inlinePrebootCode = preboot.getInlineCode(<any>prebootOptions);
+      var inlinePrebootCode = preboot.getInlineCode(prebootOptions);
       html = appendToHead(html, `\r\n<script>${inlinePrebootCode}</script>\r\n`);
 
       // preboot_browser can replay events that were stored by the preboot code
@@ -141,7 +101,7 @@ function appendToHead(htmlString, toAppend) {
   return htmlString.replace('</head>', `${toAppend}</head>`);
 }
 
-async function initializeApp(options: RenderOptions | InitializationOptions) {
+async function initializeApp(options) {
   // without this location.pathname is set to /blank
   // this needs to be a valid url format, any url is fine as it's going to
   // be changed through the Router of Aurelia
@@ -156,7 +116,7 @@ async function initializeApp(options: RenderOptions | InitializationOptions) {
   let main = null;
   
   try {
-    main = require(options.serverMain);
+    // main = require(options.serverMain);
 
     if (!main.configure) {
       throw new Error(`Server main has no configure function`);
@@ -178,8 +138,3 @@ async function initializeApp(options: RenderOptions | InitializationOptions) {
   attribute.value = options.serverMainId;
   __aurelia__.host.attributes.setNamedItem(attribute);
 }
-
-export {
-  initializeSSR,
-  render
-};

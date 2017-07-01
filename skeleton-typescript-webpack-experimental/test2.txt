@@ -1,0 +1,25 @@
+
+const Aurelia = require('aurelia-framework').Aurelia;
+const initializeSSR = require('./build/tasks/external/aurelia-ssr-renderer').initializeSSR;
+const {Options, NodeJsLoader} = require('aurelia-loader-nodejs');
+
+process.on('unhandledRejection', error => {
+  console.log('unhandledRejection', error.message);
+  console.log(error.stack);
+});
+
+initializeSSR();
+
+const attribute = document.createAttribute('aurelia-app')
+attribute.value = 'main';
+document.body.attributes.setNamedItem(attribute);
+
+
+
+
+
+
+
+
+
+

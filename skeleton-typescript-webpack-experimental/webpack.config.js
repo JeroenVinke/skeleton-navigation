@@ -3,7 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const { AureliaPlugin } = require('aurelia-webpack-plugin');
-const { optimize: { CommonsChunkPlugin }, ProvidePlugin } = require('webpack')
+const { optimize: { CommonsChunkPlugin }, ProvidePlugin, DefinePlugin } = require('webpack')
 const { TsConfigPathsPlugin, CheckerPlugin } = require('awesome-typescript-loader');
 
 // config helpers:
@@ -26,21 +26,26 @@ const cssRules = [
   }
 ]
 
-module.exports = ({production, server, extractCss, coverage} = {}) => ({
+module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
+  target: 'node',
+  node: {
+    __dirname: false
+  },
   resolve: {
     extensions: ['.ts', '.js'],
     modules: [srcDir, 'node_modules'],
   },
   entry: {
-    app: ['aurelia-bootstrapper'],
-    vendor: ['bluebird', 'jquery', 'bootstrap'],
+    test: ['./index']
   },
+  externals: ['ejs', 'jsdom','ajv', 'aurelia-pal', 'aurelia-pal-nodejs', 'aurelia-loader', 'aurelia-loader-nodejs', 'encoding', 'memoize'],
   output: {
     path: outDir,
-    publicPath: baseUrl,
+    publicPath: path.resolve(__dirname, '..'),
     filename: production ? '[name].[chunkhash].bundle.js' : '[name].bundle.js',
     sourceMapFilename: production ? '[name].[chunkhash].bundle.map' : '[name].bundle.map',
     chunkFilename: production ? '[name].[chunkhash].chunk.js' : '[id].chunk.js',
+    libraryTarget: 'commonjs2'
   },
   devServer: {
     contentBase: outDir,
@@ -87,36 +92,39 @@ module.exports = ({production, server, extractCss, coverage} = {}) => ({
     ]
   },
   plugins: [
+
+    // 'aurelia-pal-nodejs', 'aurelia-loader-nodejs', 
+
     new AureliaPlugin(),
-    new ProvidePlugin({
-      'Promise': 'bluebird',
-      '$': 'jquery',
-      'jQuery': 'jquery',
-      'window.jQuery': 'jquery',
-    }),
-    new TsConfigPathsPlugin(),
-    new CheckerPlugin(),
-    new HtmlWebpackPlugin({
-      template: 'index.ejs',
-      minify: production ? {
-        removeComments: true,
-        collapseWhitespace: true
-      } : undefined,
-      metadata: {
-        // available in index.ejs //
-        title, server, baseUrl
-      },
-    }),
-    new CopyWebpackPlugin([
-      { from: 'static/favicon.ico', to: 'favicon.ico' },
-      { from: 'node_modules/preboot/__dist/preboot_browser.js', to: 'preboot_browser.js' }
-    ]),
-    ...when(extractCss, new ExtractTextPlugin({
-      filename: production ? '[contenthash].css' : '[id].css',
-      allChunks: true,
-    })),
-    ...when(production, new CommonsChunkPlugin({
-      name: 'common'
-    }))
+    // new ProvidePlugin({
+    //   'Promise': 'bluebird',
+    //   '$': 'jquery',
+    //   'jQuery': 'jquery',
+    //   'window.jQuery': 'jquery',
+    // }),
+    // new TsConfigPathsPlugin(),
+    // new CheckerPlugin(),
+    // new HtmlWebpackPlugin({
+    //   template: 'index.ejs',
+    //   minify: production ? {
+    //     removeComments: true,
+    //     collapseWhitespace: true
+    //   } : undefined,
+    //   metadata: {
+    //     // available in index.ejs //
+    //     title, server, baseUrl
+    //   },
+    // }),
+    // new CopyWebpackPlugin([
+    //   { from: 'static/favicon.ico', to: 'favicon.ico' },
+    //   { from: 'node_modules/preboot/__dist/preboot_browser.js', to: 'preboot_browser.js' }
+    // ]),
+    // ...when(extractCss, new ExtractTextPlugin({
+    //   filename: production ? '[contenthash].css' : '[id].css',
+    //   allChunks: true,
+    // })),
+    // ...when(production, new CommonsChunkPlugin({
+    //   name: 'common'
+    // }))
   ],
 })
