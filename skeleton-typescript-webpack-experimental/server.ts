@@ -21,7 +21,8 @@ app.use(aureliaKoaMiddleware({
     title: 'Aurelia Server Side Rendering',
     baseUrl: '/'
   },
-  template: require('fs').readFileSync(path.resolve('./index.ssr.ejs'), 'utf-8')
+  minifyHtml: true,
+  template: require('fs').readFileSync(path.resolve('./dist/index.ssr.html'), 'utf-8')
 }, {
   main: require('./src/main')
 }));

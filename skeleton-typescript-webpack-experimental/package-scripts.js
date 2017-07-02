@@ -86,7 +86,15 @@ module.exports = {
       server: {
         default: `webpack-dev-server -d --devtool '#source-map' --inline --env.server`,
         extractCss: `webpack-dev-server -d --devtool '#source-map' --inline --env.server --env.extractCss`,
-        hmr: `webpack-dev-server -d --devtool '#source-map' --inline --hot --env.server`
+        hmr: `webpack-dev-server -d --devtool '#source-map' --inline --hot --env.server`,
+        ssr: {
+          watch: series.nps('webpack.build.before', 'webpack.server.ssr.bundle'),
+          bundle: concurrent({
+            client: `webpack --watch --env.extractCss --env.ssr`,
+            server: `webpack --config webpack.server.config.js --env.extractCss --watch`
+          }),
+          start: `nodemon ./dist/server.bundle.js`
+        }
       },
     },
     serve: 'http-server dist --cors'

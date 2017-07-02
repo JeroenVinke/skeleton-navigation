@@ -11,8 +11,9 @@
   "license": "CC0-1.0",
   "scripts": {
     "test": "nps test",
-    "start": "node server/index.js",
-    "ssr": "nps webpack.server.ssr"
+    "start": "node dist/server.bundle.js",
+    "watch": "nps webpack.server.ssr.watch",
+    "server": "nps webpack.server.ssr.start"
   },
   "engines": {
     "node": "8.1.2"
@@ -99,7 +100,6 @@
     "aurelia-polyfills": "1.2.1",
     "aurelia-router": "1.3.0",
     "aurelia-history": "^1.0.0",
-    "aurelia-loader-nodejs": "^1.0.1",
     "aurelia-templating": "1.4.2",
     "aurelia-templating-binding": "1.3.0",
     "aurelia-templating-resources": "1.4.0",

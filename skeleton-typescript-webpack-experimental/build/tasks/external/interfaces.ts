@@ -17,7 +17,7 @@ export interface RenderOptions {
   templateContext: any;
 
   /**
-   * The ejs template which is used as index.html template
+   * The template where <!-- app --> indicates where server side rendered html will be inserted
    */
   template: string;
 
@@ -33,16 +33,20 @@ export interface RenderOptions {
   appRoots?: string[];
 
   /**
+   * Whether to minify the HTML or not
+   */
+  minifyHtml?: boolean;
+
+  /**
+   * Options of the html-minifier package which will be used
+   * to minify the HTML (if the minifyHtml property is set to true)
+   */
+  minifyOptions?: any;
+
+  /**
    * Options that are passed to preboot
    */
   prebootOptions?: any;
-}
-
-export interface InitializationOptions {
-  /**
-   * The directory containing the source code (e.g. 'src')
-   */
-  srcRoot?: string;
 }
 
 export interface AppInitializationOptions {
@@ -55,4 +59,11 @@ export interface AppInitializationOptions {
    * The module id of the server main file (e.g. 'main')
    */
   serverMainId?: string;
+}
+
+export interface TransformerContext {
+  /**
+   * The body of the server side rendered app
+   */
+  app: string;
 }

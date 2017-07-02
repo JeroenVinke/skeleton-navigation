@@ -38,7 +38,7 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
   entry: {
     server: './server'
   },
-  externals: ['ejs', 'jsdom', 'any-promise', 'aurelia-pal', 'aurelia-pal-nodejs', 'aurelia-loader-nodejs', 'encoding', 'memoize'],
+  externals: ['jsdom', 'any-promise', 'html-minifier', 'aurelia-pal', 'aurelia-pal-nodejs', 'aurelia-loader-nodejs', 'encoding'],
   output: {
     path: outDir,
     publicPath: baseUrl,
@@ -101,17 +101,6 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
     }),
     new TsConfigPathsPlugin(),
     new CheckerPlugin(),
-    new HtmlWebpackPlugin({
-      template: 'index.ejs',
-      minify: production ? {
-        removeComments: true,
-        collapseWhitespace: true
-      } : undefined,
-      metadata: {
-        // available in index.ejs //
-        title, server, baseUrl
-      },
-    }),
     new CopyWebpackPlugin([
       { from: 'static/favicon.ico', to: 'favicon.ico' },
       { from: 'node_modules/preboot/__dist/preboot_browser.js', to: 'preboot_browser.js' }

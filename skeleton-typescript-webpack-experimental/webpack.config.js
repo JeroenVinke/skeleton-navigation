@@ -26,7 +26,7 @@ const cssRules = [
   }
 ]
 
-module.exports = ({production, server, extractCss, coverage} = {}) => ({
+module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
   resolve: {
     extensions: ['.ts', '.js'],
     modules: [srcDir, 'node_modules'],
@@ -38,8 +38,8 @@ module.exports = ({production, server, extractCss, coverage} = {}) => ({
   output: {
     path: outDir,
     publicPath: baseUrl,
-    filename: '[name].bundle.js',
-    sourceMapFilename: '[name].bundle.map',
+    filename: production ? '[name].[chunkhash].bundle.js' : '[name].[hash].bundle.js',
+    sourceMapFilename: production ? '[name].[chunkhash].bundle.map' : '[name].[hash].bundle.map',
     chunkFilename: production ? '[name].[chunkhash].chunk.js' : '[name].[hash].chunk.js',
   },
   devServer: {
@@ -97,9 +97,12 @@ module.exports = ({production, server, extractCss, coverage} = {}) => ({
     new TsConfigPathsPlugin(),
     new CheckerPlugin(),
     new HtmlWebpackPlugin({
-      template: 'index.ejs',
+      filename: ssr ? 'index.ssr.html' : 'index.html',
+      template: ssr ? 'index.ssr.ejs' : 'index.ejs',
       minify: production ? {
-        removeComments: true,
+        // we don't want to remove comments as they are used as a placeholder
+        // for Aurelia SSR
+        removeComments: false, 
         collapseWhitespace: true
       } : undefined,
       metadata: {
@@ -111,7 +114,7 @@ module.exports = ({production, server, extractCss, coverage} = {}) => ({
       { from: 'static/favicon.ico', to: 'favicon.ico' }
     ]),
     ...when(extractCss, new ExtractTextPlugin({
-      filename: '[id].css',
+      filename: production ? '[contenthash].css' : '[id].css',
       allChunks: true,
     })),
     ...when(production, new CommonsChunkPlugin({

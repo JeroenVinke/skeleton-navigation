@@ -1,29 +1,16 @@
 import {Aurelia} from 'aurelia-framework';
 import {Router} from 'aurelia-router';
-import {Options} from 'aurelia-loader-nodejs';
 import {WebpackLoader} from 'aurelia-loader-webpack';
 import {globalize} from 'aurelia-pal-nodejs';
 import * as jsdom from 'jsdom';
-import * as preboot from 'preboot';
 import * as path from 'path';
-import * as ejs from 'ejs';
-import {RenderOptions, InitializationOptions, AppInitializationOptions} from './interfaces';
+import {RenderOptions, AppInitializationOptions} from './interfaces';
+import {transform} from './transformers';
 
 var __aurelia__ = null;
 var __host__ = null;
 
-function setup(options?: InitializationOptions) {
-  if (!options) {
-    options = {};
-  }
-  if (!options.srcRoot) {
-    options.srcRoot = path.resolve(__dirname, 'src');
-  }
-
-  // set the root directory where the aurelia loader will resolve to
-  // this is the 'src' dir in case of skeleton
-  Options.relativeToDir = options.srcRoot;
-
+function setup() {
   // initialize PAL and set globals (window, document, etc.)
   globalize();
   
@@ -70,65 +57,14 @@ async function render(options: RenderOptions) {
     }
 
     let app = __host__.outerHTML;
-    let title = document.head.querySelector('title');
-    let headStyleTags = Array.prototype.slice.call(document.head.querySelectorAll('style'));
-    let html;
+    let html = options.template;
 
-    try {
-      html = ejs.compile(options.template)({ 
-        htmlWebpackPlugin : {
-          options: {
-            metadata: Object.assign(options.templateContext, {
-              ssr: true,
-              app: app,
-              title: title.innerHTML
-            })
-          }
-        }
-      });
-    } catch (e) {
-      console.log(`Failed to compile template`);
-      console.log(e);
-      throw e;
-    }
+    html = transform(html, { app: app }, options);
 
-    if (options.preboot) {
-      // preboot catches all events that happens before Aurelia gets loaded client-side
-      // so that they can be replayed afterwards
-      var prebootOptions = Object.assign({
-        appRoot: options.appRoots || ['body']
-      }, options.prebootOptions);
-      var inlinePrebootCode = preboot.getInlineCode(prebootOptions);
-      html = appendToHead(html, `\r\n<script>${inlinePrebootCode}</script>\r\n`);
-
-      // preboot_browser can replay events that were stored by the preboot code
-      html = appendToBody(html, `\r\n<script src="preboot_browser.js"></script>
-  <script>
-  document.addEventListener('aurelia-started', function () {
-    // Aurelia has started client-side
-    // but the view/view-model hasn't been loaded yet so we need a small
-    // delay until we can playback all events.
-    setTimeout(function () { preboot.complete(); }, ${options.replayDelay});
-  });
-  </script>`);
-    }
-
-    // copy over any style tags
-    for(let i = 0; i < headStyleTags.length; i++) {
-      html = appendToHead(html, headStyleTags[i].outerHTML);
-    }
-    
     resolve(html);
   });
 }
 
-function appendToBody(htmlString, toAppend) {
-  return htmlString.replace('</body>', `${toAppend}</body>`);
-}
-
-function appendToHead(htmlString, toAppend) {
-  return htmlString.replace('</head>', `${toAppend}</head>`);
-}
 
 function start(options: AppInitializationOptions) {
   if (__aurelia__) {
