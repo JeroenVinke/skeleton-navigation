@@ -11,7 +11,7 @@
   "license": "CC0-1.0",
   "scripts": {
     "test": "nps test",
-    "start": "node dist/server.bundle.js",
+    "start": "nps",
     "watch": "nps webpack.server.ssr.watch",
     "server": "nps webpack.server.ssr.start"
   },

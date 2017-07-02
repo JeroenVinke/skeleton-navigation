@@ -81,6 +81,11 @@ module.exports = {
             'webpack.build.production',
             'serve'
           ),
+          ssr: series(
+            'nps webpack.build.before',
+            'webpack --progress -p --env.production --env.extractCss',
+            'webpack --config webpack.server.config.js --progress -p --env.production --env.extractCss'
+          )
         }
       },
       server: {

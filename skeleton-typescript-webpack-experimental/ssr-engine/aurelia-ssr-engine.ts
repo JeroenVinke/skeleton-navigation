@@ -9,6 +9,7 @@ import {transform} from './transformers';
 
 var __aurelia__ = null;
 var __host__ = null;
+var __router__ = null;
 
 function setup() {
   // initialize PAL and set globals (window, document, etc.)
@@ -41,10 +42,8 @@ async function render(options: RenderOptions) {
       options.replayDelay = 10;
     }
 
-    let router = __aurelia__.container.get(Router);
     console.log(`Routing to ${options.route}`);
-
-    await router.navigate(options.route);
+    await __router__.navigate(options.route);
 
     // <input> .value property does not map to @value attribute, .defaultValue does.
     // so we need to copy that value over if we want it to serialize into HTML <input value="">
@@ -98,6 +97,8 @@ function start(options: AppInitializationOptions) {
   return main.configure(__aurelia__)
   .then(() => {
     console.log('Aurelia initialized server side');
+
+    __router__ = __aurelia__.container.get(Router);
   }).catch(e => { 
     console.log('Error while running the configure() method of the server main file'); 
     throw e; 

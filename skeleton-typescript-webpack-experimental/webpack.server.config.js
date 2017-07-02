@@ -38,12 +38,12 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
   entry: {
     server: './server'
   },
-  externals: ['jsdom', 'any-promise', 'html-minifier', 'aurelia-pal', 'aurelia-pal-nodejs', 'aurelia-loader-nodejs', 'encoding'],
+  externals: ['jsdom', 'any-promise', 'html-minifier', 'koa', 'koa-static', 'uglifyjs', 'aurelia-pal', 'aurelia-pal-nodejs', 'aurelia-loader-nodejs', 'encoding'],
   output: {
     path: outDir,
     publicPath: baseUrl,
-    filename: production ? '[name].[chunkhash].bundle.js' : '[name].bundle.js',
-    sourceMapFilename: production ? '[name].[chunkhash].bundle.map' : '[name].bundle.map',
+    filename: production ? '[name].bundle.js' : '[name].bundle.js',
+    sourceMapFilename: production ? '[name].bundle.map' : '[name].bundle.map',
     chunkFilename: production ? '[name].[chunkhash].chunk.js' : '[id].chunk.js',
     libraryTarget: 'commonjs2'
   },
@@ -106,7 +106,7 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
       { from: 'node_modules/preboot/__dist/preboot_browser.js', to: 'preboot_browser.js' }
     ]),
     ...when(extractCss, new ExtractTextPlugin({
-      filename: production ? '[contenthash].css' : '[id].css',
+      filename: '[id].css',
       allChunks: true,
     })),
     ...when(production, new CommonsChunkPlugin({
