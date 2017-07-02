@@ -16,14 +16,14 @@ app.use(aureliaKoaMiddleware({
     title: 'Aurelia Server Side Rendering',
     baseUrl: '/'
   },
-  minifyHtml: true,
+  minifyHtml: false,
   template: require('fs').readFileSync(path.resolve('./dist/index.ssr.html'), 'utf-8')
 }, {
   main: require('./src/main')
 }));
 
-// app.use(require('koa-static')(path.resolve(__dirname, '..')));
 app.use(require('koa-static')(path.resolve(__dirname)));
+app.use(require('koa-static')(path.resolve(__dirname, 'dist')));
 
 console.log('Starting server....');
 app.listen(port);

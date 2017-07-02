@@ -7,11 +7,10 @@
 
 ### Prod
 On a development machine (or CI server) follow the following steps:
-1. Client bundle: `webpack --progress -p --env.production --env.extractCss`
-2. Server bundle: `webpack --config webpack.server.config.js --progress -p --env.production --env.extractCss`
-3. Copy the following files and folder to the server:
+1. Run `nps webpack.build.production.ssr`. This builds a client bundle and a server bundle
+2. Copy the following files and folder to the server:
   - dist
   - static
   - package.json
-4. run `npm install` or `yarn` on the server
-5. launch `node dist/server.bundle.js` to start the server
+3. run `npm install` or `yarn` on the server
+4. launch `node dist/server.bundle.js` to start the server

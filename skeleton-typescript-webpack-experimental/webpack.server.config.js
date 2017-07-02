@@ -5,6 +5,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const { AureliaPlugin } = require('aurelia-webpack-plugin');
 const { optimize: { CommonsChunkPlugin }, ProvidePlugin, DefinePlugin } = require('webpack')
 const { TsConfigPathsPlugin, CheckerPlugin } = require('awesome-typescript-loader');
+const nodeExternals = require('webpack-node-externals');
 
 // config helpers:
 const ensureArray = (config) => config && (Array.isArray(config) ? config : [config]) || []
@@ -29,7 +30,7 @@ const cssRules = [
 module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
   target: 'node',
   node: {
-    __dirname: false
+    __dirname: true,
   },
   resolve: {
     extensions: ['.ts', '.js'],
@@ -38,7 +39,13 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
   entry: {
     server: './server'
   },
-  externals: ['jsdom', 'any-promise', 'html-minifier', 'koa', 'koa-static', 'uglifyjs', 'aurelia-pal', 'aurelia-pal-nodejs', 'aurelia-loader-nodejs', 'encoding'],
+  externals: [nodeExternals({
+    whitelist: [
+      // these things should be in the webpack bundle
+      // other node_modules need to be left out
+      /font-awesome|bootstrap|-loader|aurelia-(?!pal-nodejs|pal)/,
+    ]
+  })],
   output: {
     path: outDir,
     publicPath: baseUrl,
