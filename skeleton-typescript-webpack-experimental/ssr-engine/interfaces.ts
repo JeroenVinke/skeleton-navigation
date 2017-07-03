@@ -6,20 +6,15 @@ export interface RenderOptions {
   route?: string;
 
   /**
+   * The template where <!-- app --> indicates where server side rendered html will be inserted
+   */
+  template: string;
+
+  /**
    * Whether or not to use preboot. Preboot allows you to record (and playback) events
    * that occur before the client-app is loaded (defaults to false)
    */
   preboot: boolean;
-
-  /**
-   * Context (object) that is used to generate the index.html template
-   */
-  templateContext: any;
-
-  /**
-   * The template where <!-- app --> indicates where server side rendered html will be inserted
-   */
-  template: string;
 
   /**
    * When using preboot, how long is the delay between Aurelia start and before the view has loaded
@@ -27,7 +22,12 @@ export interface RenderOptions {
   replayDelay?: number;
 
   /**
-   * The queryselector(s) of the approot(s)
+   * Options that are passed to preboot
+   */
+  prebootOptions?: any;
+
+  /**
+   * The queryselector(s) of the approot(s). Used by preboot
    * e.g. ['body']
    */
   appRoots?: string[];
@@ -42,11 +42,6 @@ export interface RenderOptions {
    * to minify the HTML (if the minifyHtml property is set to true)
    */
   minifyOptions?: any;
-
-  /**
-   * Options that are passed to preboot
-   */
-  prebootOptions?: any;
 }
 
 export interface AppInitializationOptions {

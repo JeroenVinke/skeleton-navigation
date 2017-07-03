@@ -4,6 +4,10 @@ import {RenderOptions, TransformerContext} from '../interfaces';
 
 export default function (html: string, transformerCtx: TransformerContext, options: RenderOptions) {
   if (options.preboot) {
+      if (options.replayDelay === undefined) {
+        options.replayDelay = 10;
+      }
+
       // preboot catches all events that happens before Aurelia gets loaded client-side
       // so that they can be replayed afterwards
       var prebootOptions = Object.assign({

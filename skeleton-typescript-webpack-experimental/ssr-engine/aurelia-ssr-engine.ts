@@ -28,18 +28,11 @@ async function render(options: RenderOptions) {
     if (!__aurelia__) {
       return reject(new Error('Aurelia has not yet been started. Call start() on the engine before any render() call'));
     }
-
     if (!options.route) {
       options.route = '/';
     }
-    if (!options.templateContext) {
-      options.templateContext = {};
-    }
     if (!options.template) {
-      throw new Error('template is necessary when calling render()');
-    }
-    if (options.replayDelay === undefined) {
-      options.replayDelay = 10;
+      throw new Error('template is required when calling render()');
     }
 
     console.log(`Routing to ${options.route}`);
