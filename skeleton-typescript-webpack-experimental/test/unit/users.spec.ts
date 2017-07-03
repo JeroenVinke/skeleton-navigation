@@ -1,5 +1,6 @@
 import {HttpClient} from 'aurelia-fetch-client';
 import {Users} from 'users';
+import {Cache} from '../../cache/aurelia-cache';
 
 class HttpStub extends HttpClient {
   url: string;
@@ -18,10 +19,24 @@ class HttpStub extends HttpClient {
   }
 }
 
+class CacheStub extends Cache {
+  cache: {};
+
+  get<T>(key: any): T {
+    return this.cache[key];
+  }
+
+  set(key: any, value: any, cacheStrategy: any) {
+    return this.cache[key] = value;
+  }
+}
+
 describe('the Users module', () => {
   it('sets fetch response to users', async () => {
     const itemStubs = [{avatar_url: 'u1_avatar', login: 'u1_login', html_url: 'u1_url'}];
     const itemFake = [{avatar_url: 'u2_avatar', login: 'u2_login', html_url: 'u2_url'}];
+
+    const cache = new CacheStub();
 
     const getHttp = () => {
       const http = new HttpStub();
@@ -29,7 +44,7 @@ describe('the Users module', () => {
       return http;
     };
 
-    const sut = new Users(getHttp);
+    const sut = new Users(getHttp, cache);
 
     await sut.activate();
     expect(sut.users).toBe(itemStubs);

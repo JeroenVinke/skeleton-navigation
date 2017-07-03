@@ -12,10 +12,6 @@ const app = new Koa();
 
 app.use(aureliaKoaMiddleware({
   preboot: true,
-  templateContext: {
-    title: 'Aurelia Server Side Rendering',
-    baseUrl: '/'
-  },
   minifyHtml: false,
   template: require('fs').readFileSync(path.resolve('./dist/index.ssr.html'), 'utf-8')
 }, {
