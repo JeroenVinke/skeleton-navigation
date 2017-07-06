@@ -42,12 +42,15 @@ function render(options: RenderOptions, initOptions: AppInitializationOptions) {
 }
 
 function start(options: AppInitializationOptions, requestUrl: string) {
-  // clear the nodejs require and webpack cache
+  // clear webpack cache
   // otherwise the app does not use new instances of things like aurelia-logging
-  // and aurelia-pal (in other words, the jsdom won't be unique otherwise)
   while(Object.keys(__webpack_require__.c).length > 0) {
     delete __webpack_require__.c[Object.keys(__webpack_require__.c)[0]];
   }
+  // also delete things from the node.js cache, which are declared as external in the
+  // webpack config. unfortunately webpack rewrites "require" to "__webpack_require"
+  // which is not what we want. Workaround is using the DefinePlugin
+  // which rewrites "__nodejs_require__" to "require"
   delete __nodejs_require__.cache[__nodejs_require__.resolve('aurelia-pal')];
   delete __nodejs_require__.cache[__nodejs_require__.resolve('aurelia-pal-nodejs')];
 

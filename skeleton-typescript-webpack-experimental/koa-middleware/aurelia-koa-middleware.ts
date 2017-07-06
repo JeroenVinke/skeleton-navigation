@@ -1,4 +1,4 @@
-import {render, start} from '../ssr-engine/aurelia-ssr-engine';
+import {render} from '../ssr-engine/aurelia-ssr-engine';
 import {RenderOptions, AppInitializationOptions} from '../ssr-engine/interfaces';
 
 export let aureliaKoaMiddleware = (renderOptions: RenderOptions, initializationOptions?: AppInitializationOptions) => {
