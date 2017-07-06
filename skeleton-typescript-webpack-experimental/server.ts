@@ -11,7 +11,7 @@ app.use(aureliaKoaMiddleware({
   minifyHtml: false,
   template: require('fs').readFileSync(path.resolve('./dist/index.ssr.html'), 'utf-8')
 }, {
-  main: require('./src/main')
+  main: () => require('./src/main')
 }));
 
 app.use(require('koa-static')(path.resolve(__dirname)));

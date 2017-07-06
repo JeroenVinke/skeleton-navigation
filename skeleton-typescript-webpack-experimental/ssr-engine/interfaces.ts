@@ -47,7 +47,7 @@ export interface AppInitializationOptions {
   /**
    * The main class to use as entry point for Aurelia (server side)
    */
-  main: { configure: (aurelia) => Promise<void> };
+  main: () => { configure: (aurelia) => Promise<void> };
   
   /**
    * The module id of the server main file (e.g. 'main')
@@ -60,4 +60,9 @@ export interface TransformerContext {
    * The body of the server side rendered app
    */
   app: string;
+
+  /**
+   * The JSDOM document
+   */
+  document: any;
 }
