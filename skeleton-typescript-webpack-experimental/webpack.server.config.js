@@ -30,7 +30,7 @@ const cssRules = [
 module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
   target: 'node',
   node: {
-    __dirname: true,
+    __dirname: true
   },
   resolve: {
     extensions: ['.ts', '.js'],
@@ -108,6 +108,9 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
     }),
     new TsConfigPathsPlugin(),
     new CheckerPlugin(),
+    new DefinePlugin({
+      __nodejs_require__: 'require'
+    }),
     new CopyWebpackPlugin([
       { from: 'static/favicon.ico', to: 'favicon.ico' },
       { from: 'node_modules/preboot/__dist/preboot_browser.js', to: 'preboot_browser.js' }

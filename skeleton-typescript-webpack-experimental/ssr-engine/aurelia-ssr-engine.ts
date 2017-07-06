@@ -1,105 +1,119 @@
-import {Aurelia} from 'aurelia-framework';
-import {Router} from 'aurelia-router';
-import {WebpackLoader} from 'aurelia-loader-webpack';
-import {globalize} from 'aurelia-pal-nodejs';
 import * as jsdom from 'jsdom';
 import * as path from 'path';
 import {RenderOptions, AppInitializationOptions} from './interfaces';
 import {transform} from './transformers';
 
-var __aurelia__ = null;
 var __host__ = null;
-var __router__ = null;
+declare var __webpack_require__;
+declare var __nodejs_require__;
 
-function setup() {
-  // initialize PAL and set globals (window, document, etc.)
-  globalize();
-  
-  // aurelia expects console.debug
-  // this also allows you to see aurelia logging in cmd/terminal
-  console.debug = console.log;
+function render(options: RenderOptions, initOptions: AppInitializationOptions) {
+  return new Promise((resolve, reject) => {
+    start(initOptions, options.url.toString())
+    .then((app: { aurelia, main }) => {
+      if (!options.url) {
+        throw new Error('url is required when calling render()');
+      }
+      if (!options.template) {
+        throw new Error('template is required when calling render()');
+      }
 
-  __host__ = document.createElement('app');
-  document.body.appendChild(__host__);
-}
+      // <input> .value property does not map to @value attribute, .defaultValue does.
+      // so we need to copy that value over if we want it to serialize into HTML <input value="">
+      // without this there isn't a value attribute on any of the input tags
+      let inputTags = Array.prototype.slice.call(document.body.querySelectorAll('input'));
+      for(let i = 0; i < inputTags.length; i++) {
+        let input = inputTags[i];
+        if (input.value != null) 
+          input.defaultValue = input.value;
+      }
 
-async function render(options: RenderOptions) {
-  return new Promise(async (resolve, reject) => {
-    if (!__aurelia__) {
-      return reject(new Error('Aurelia has not yet been started. Call start() on the engine before any render() call'));
-    }
-    if (!options.route) {
-      options.route = '/';
-    }
-    if (!options.template) {
-      throw new Error('template is required when calling render()');
-    }
+      let appHTML = __host__.outerHTML;
 
-    console.log(`Routing to ${options.route}`);
-    await __router__.navigate(options.route);
+      app.aurelia = null;
+      app.main = null;
+      app = null;
 
-    // <input> .value property does not map to @value attribute, .defaultValue does.
-    // so we need to copy that value over if we want it to serialize into HTML <input value="">
-    // without this there isn't a value attribute on any of the input tags
-    let inputTags = Array.prototype.slice.call(document.body.querySelectorAll('input'));
-    for(let i = 0; i < inputTags.length; i++) {
-      let input = inputTags[i];
-      if (input.value != null) 
-        input.defaultValue = input.value;
-    }
+      let html = options.template;
 
-    let app = __host__.outerHTML;
-    let html = options.template;
+      html = transform(html, { app: appHTML }, options);
 
-    html = transform(html, { app: app }, options);
-
-    resolve(html);
+      resolve(html);
+    });
   });
 }
 
+function start(options: AppInitializationOptions, requestUrl: string) {
+  return new Promise(resolve => {
+    // clear the nodejs require and webpack cache
+    // otherwise the app does not use new instances of things like aurelia-logging
+    // and aurelia-pal (in other words, the jsdom won't be unique otherwise)
+    while(Object.keys(__webpack_require__.c).length > 0) {
+      delete __webpack_require__.c[Object.keys(__webpack_require__.c)[0]];
+    }
+    delete __nodejs_require__.cache[__nodejs_require__.resolve('aurelia-pal')];
+    delete __nodejs_require__.cache[__nodejs_require__.resolve('aurelia-pal-nodejs')];
 
-function start(options: AppInitializationOptions) {
-  if (__aurelia__) {
-    return Promise.resolve();
-  }
+    const {Aurelia, PLATFORM} = require('aurelia-framework');
+    const {AppRouter} = require('aurelia-router');
+    const {WebpackLoader} = require('aurelia-loader-webpack');
+    const {globalize} = require('aurelia-pal-nodejs');
 
-  if (!options.serverMainId) {
-    options.serverMainId = 'main';
-  }
+    //initialize PAL and set globals (window, document, etc.)
+    globalize();
 
-  // without this location.pathname is set to /blank by jsdom
-  // this needs to be a valid url format, any url is fine
-  jsdom.changeURL(global.window, 'http://localhost:8765');
+    // aurelia expects console.debug
+    // this also allows you to see aurelia logging in cmd/terminal
+    console.debug = console.log;
 
-  __host__ = document.createElement('app');
-  document.body.appendChild(__host__);
+    if (!options.serverMainId) {
+      options.serverMainId = 'main';
+    }
 
-  __aurelia__ = new Aurelia(new WebpackLoader());
-  __aurelia__.host = __host__;
+    if (!__host__) {
+      __host__ = document.createElement('app');
+      document.body.appendChild(__host__);
+    }
 
-  const attribute = document.createAttribute('aurelia-app')
-  attribute.value = options.serverMainId;
-  __aurelia__.host.attributes.setNamedItem(attribute);
+    // without this location.pathname is set to /blank by jsdom
+    // this needs to be a valid url format, any url is fine
+    jsdom.changeURL(global.window, requestUrl);
 
-  var main = options.main;
+    var aurelia = new Aurelia(new WebpackLoader());
+    aurelia.host = __host__;
 
-  if (!main.configure) { 
-    throw new Error(`Server main has no configure function`); 
-  } 
+    const attribute = document.createAttribute('aurelia-app')
+    attribute.value = options.serverMainId;
+    aurelia.host.attributes.setNamedItem(attribute);
+  
+    // todo: supply through main
+    var main = require('../src/main');
 
-  return main.configure(__aurelia__)
-  .then(() => {
-    console.log('Aurelia initialized server side');
+    if (!main.configure) { 
+      throw new Error(`Server main has no configure function`); 
+    } 
 
-    __router__ = __aurelia__.container.get(Router);
-  }).catch(e => { 
-    console.log('Error while running the configure() method of the server main file'); 
-    throw e; 
-  }); 
+    return main.configure(aurelia)
+    .then(() => {
+      var router = aurelia.container.get(AppRouter);
+
+      // we need to wait for aurelia-composed
+      // because otherwise some things aren't ready yet
+      // e.g. the router's navigation property has href's which are undefined
+      global.window.addEventListener('aurelia-composed', () => {
+        resolve({
+          aurelia: aurelia,
+          main: main
+        });
+      });
+    }).catch(e => { 
+      console.log('Error while running the configure() method of the server main file'); 
+      throw e; 
+    }); 
+  });
 }
 
 export {
-  setup,
   start,
   render
 };

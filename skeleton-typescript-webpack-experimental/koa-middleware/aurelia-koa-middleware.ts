@@ -13,12 +13,7 @@ export let aureliaKoaMiddleware = (renderOptions: RenderOptions, initializationO
 
     let promise = Promise.resolve();
 
-    if (initializationOptions) {
-      promise = start(initializationOptions);
-    }
-
-    return promise
-    .then(() => render(Object.assign({ route: pathname }, renderOptions)))
+    return render(Object.assign({ url: ctx.request.URL }, renderOptions), initializationOptions)
     .then(html => {
       ctx.body = html;
     })

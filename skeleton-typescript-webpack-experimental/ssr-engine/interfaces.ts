@@ -1,9 +1,8 @@
 export interface RenderOptions {
   /**
-   * The pathname of the route (e.g. /users)
-   * will be sent to router.navigate(<route>)
+   * The requested url
    */
-  route?: string;
+  url?: URL;
 
   /**
    * The template where <!-- app --> indicates where server side rendered html will be inserted
