@@ -25,15 +25,3 @@ process.on('unhandledRejection', error => {
   console.log('unhandledRejection', error.message);
   console.log(error.stack);
 });
-
-
-
-
-
-
-
-
-
-
-
-

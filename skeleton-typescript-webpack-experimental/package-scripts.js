@@ -98,7 +98,7 @@ module.exports = {
             client: `webpack --watch --env.extractCss --env.ssr`,
             server: `webpack --config webpack.server.config.js --env.extractCss --watch`
           }),
-          start: `nodemon ./dist/server.bundle.js`
+          start: `nodemon ./dist/server.bundle.js --expose-gc`
         }
       },
     },

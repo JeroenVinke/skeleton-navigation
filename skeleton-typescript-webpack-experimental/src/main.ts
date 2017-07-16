@@ -6,8 +6,6 @@ import 'bootstrap/dist/css/bootstrap.css';
 import { Aurelia } from 'aurelia-framework';
 import { PLATFORM } from 'aurelia-pal';
 import * as Bluebird from 'bluebird';
-import {Cache} from '../cache/aurelia-cache';
-import {CacheNode} from '../cache-node/aurelia-cache-node';
 
 // remove out if you don't want a Promise polyfill (remove also from webpack.config.js)
 // Bluebird.config({ warnings: { wForgottenReturn: false } });
@@ -15,8 +13,7 @@ import {CacheNode} from '../cache-node/aurelia-cache-node';
 export async function configure(aurelia: Aurelia) {
   aurelia.use
     .standardConfiguration()
-    .developmentLogging()
-    .instance(Cache, new CacheNode());
+    .developmentLogging();
 
   // Uncomment the line below to enable animation.
   // aurelia.use.plugin(PLATFORM.moduleName('aurelia-animator-css'));

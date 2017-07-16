@@ -111,6 +111,8 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
     new DefinePlugin({
       __nodejs_require__: 'require'
     }),
+    new DefinePlugin({
+    }),
     new CopyWebpackPlugin([
       { from: 'static/favicon.ico', to: 'favicon.ico' },
       { from: 'node_modules/preboot/__dist/preboot_browser.js', to: 'preboot_browser.js' }

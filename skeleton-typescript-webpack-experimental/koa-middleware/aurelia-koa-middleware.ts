@@ -12,10 +12,11 @@ export let aureliaKoaMiddleware = (renderOptions: RenderOptions, initializationO
     }
 
     let promise = Promise.resolve();
-
+    console.log('start render', new Date());
     return render(Object.assign({ url: ctx.request.URL }, renderOptions), initializationOptions)
     .then(html => {
       ctx.body = html;
+      console.log('body set', new Date());
     })
     .catch(e => {
       ctx.body = `<html><body>Failed to render ${pathname}</body></html>`;

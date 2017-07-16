@@ -1,4 +1,3 @@
-import * as jsdom from 'jsdom';
 import * as path from 'path';
 import {RenderOptions, AppInitializationOptions} from './interfaces';
 import {transform} from './transformers';
@@ -8,7 +7,7 @@ declare var __nodejs_require__;
 
 function render(options: RenderOptions, initOptions: AppInitializationOptions) {
   return start(initOptions, options.url.toString())
-  .then((app: { aurelia, main, host, DOM }) => {
+  .then((app: { aurelia, main, host, DOM, jsdom }) => {
     if (!options.url) {
       throw new Error('url is required when calling render()');
     }
@@ -19,7 +18,7 @@ function render(options: RenderOptions, initOptions: AppInitializationOptions) {
     // <input> .value property does not map to @value attribute, .defaultValue does.
     // so we need to copy that value over if we want it to serialize into HTML <input value="">
     // without this there isn't a value attribute on any of the input tags
-    let inputTags = Array.prototype.slice.call(document.body.querySelectorAll('input'));
+    let inputTags = Array.prototype.slice.call(app.DOM.global.document.body.querySelectorAll('input'));
     for(let i = 0; i < inputTags.length; i++) {
       let input = inputTags[i];
       if (input.value != null) 
@@ -32,10 +31,12 @@ function render(options: RenderOptions, initOptions: AppInitializationOptions) {
 
     html = transform(html, { app: appHTML, document: app.DOM.global.document }, options);
 
-    app.aurelia = null;
-    app.main = null;
-    app.DOM = null;
+    app.DOM.global.window.close();
+    delete app.aurelia;
+    delete app.main;
+    delete app.DOM;
     app = null;
+    global.gc();
 
     return html;
   });
@@ -52,16 +53,17 @@ function start(options: AppInitializationOptions, requestUrl: string) {
   // which is not what we want. Workaround is using the DefinePlugin
   // which rewrites "__nodejs_require__" to "require"
   delete __nodejs_require__.cache[__nodejs_require__.resolve('aurelia-pal')];
-  delete __nodejs_require__.cache[__nodejs_require__.resolve('aurelia-pal-nodejs')];
+  delete __nodejs_require__.cache[__nodejs_require__.resolve('../pal-nodejs')];
 
-  const {Aurelia, PLATFORM, DOM} = require('aurelia-framework');
-  const {WebpackLoader} = require('aurelia-loader-webpack');
-  const {globalize} = require('aurelia-pal-nodejs');
+  const {DOM, PLATFORM, FEATURE} = require('aurelia-pal');
+  const {globalize} = require('../pal-nodejs');
 
-  //initialize PAL and set globals (window, document, etc.)
+  // even though we store an instance of jsdom in aurelia-pal, of which a new instance is created per request
+  // we need globalize instead of initialize because some apps use the self global, and so that you can use Element
+  // e.g. through DI
   globalize();
 
-  // aurelia expects console.debug
+// aurelia expects console.debug
   // this also allows you to see aurelia logging in cmd/terminal
   console.debug = console.log;
 
@@ -69,12 +71,16 @@ function start(options: AppInitializationOptions, requestUrl: string) {
     options.serverMainId = 'main';
   }
 
+  const {Aurelia} = require('aurelia-framework');
+  const {WebpackLoader} = require('aurelia-loader-webpack');
+  const jsdom = require('jsdom');
+
   var host = DOM.global.document.createElement('app');
   DOM.global.document.body.appendChild(host);
 
-  // without this location.pathname is set to /blank by jsdom
-  // this needs to be a valid url format, any url is fine
-  jsdom.changeURL(DOM.global.window, requestUrl);
+  // url of jsdom should be equal to the request urll
+  // this dictates what page aurelia loads on startup
+  PLATFORM.jsdom.reconfigure({ url: requestUrl });
 
   var aurelia = new Aurelia(new WebpackLoader());
   aurelia.host = host;
@@ -83,7 +89,6 @@ function start(options: AppInitializationOptions, requestUrl: string) {
   attribute.value = options.serverMainId;
   aurelia.host.attributes.setNamedItem(attribute);
 
-  // todo: supply through main
   var main = options.main();
 
   if (!main.configure) { 
