@@ -33,17 +33,20 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
     __dirname: true
   },
   resolve: {
+    alias: {
+      'aurelia-pal-nodejs': path.resolve('./pal-nodejs/dist')
+    },
     extensions: ['.ts', '.js'],
     modules: [srcDir, 'node_modules'],
   },
   entry: {
-    server: './server'
+    server: './src/server-main'
   },
   externals: [nodeExternals({
     whitelist: [
       // these things should be in the webpack bundle
       // other node_modules need to be left out
-      /font-awesome|bootstrap|-loader|aurelia-(?!pal-nodejs|pal)/,
+      /font-awesome|bootstrap|-loader|aurelia-(?!pal-nodejs)/,
     ]
   })],
   output: {

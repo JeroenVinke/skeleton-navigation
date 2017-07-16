@@ -1,4 +1,4 @@
-import {render} from '../ssr-engine/aurelia-ssr-engine';
+
 import {RenderOptions, AppInitializationOptions} from '../ssr-engine/interfaces';
 
 export let aureliaKoaMiddleware = (renderOptions: RenderOptions, initializationOptions?: AppInitializationOptions) => {
@@ -10,8 +10,10 @@ export let aureliaKoaMiddleware = (renderOptions: RenderOptions, initializationO
     if (pathname.match(extensionMatcher)) {
       return next();
     }
+    
+    delete require.cache[require.resolve('../dist/server.bundle')];
+    const {render} = require('../dist/server.bundle');
 
-    let promise = Promise.resolve();
     console.log('start render', new Date());
     return render(Object.assign({ url: ctx.request.URL }, renderOptions), initializationOptions)
     .then(html => {

@@ -36,7 +36,6 @@ function render(options: RenderOptions, initOptions: AppInitializationOptions) {
     delete app.main;
     delete app.DOM;
     app = null;
-    global.gc();
 
     return html;
   });
@@ -45,15 +44,17 @@ function render(options: RenderOptions, initOptions: AppInitializationOptions) {
 function start(options: AppInitializationOptions, requestUrl: string) {
   // clear webpack cache
   // otherwise the app does not use new instances of things like aurelia-logging
-  while(Object.keys(__webpack_require__.c).length > 0) {
-    delete __webpack_require__.c[Object.keys(__webpack_require__.c)[0]];
-  }
+  // while(Object.keys(__webpack_require__.c).length > 0) {
+  //   delete __webpack_require__.c[Object.keys(__webpack_require__.c)[0]];
+  // }
   // also delete things from the node.js cache, which are declared as external in the
   // webpack config. unfortunately webpack rewrites "require" to "__webpack_require"
   // which is not what we want. Workaround is using the DefinePlugin
   // which rewrites "__nodejs_require__" to "require"
-  delete __nodejs_require__.cache[__nodejs_require__.resolve('aurelia-pal')];
-  delete __nodejs_require__.cache[__nodejs_require__.resolve('../pal-nodejs')];
+  // delete __nodejs_require__.cache[__nodejs_require__.resolve('aurelia-pal')];
+  // delete __nodejs_require__.cache[__nodejs_require__.resolve('../pal-nodejs')];
+  // delete require.cache[require.resolve('aurelia-pal')];
+  // delete require.cache[require.resolve('../pal-nodejs')];
 
   const {DOM, PLATFORM, FEATURE} = require('aurelia-pal');
   const {globalize} = require('../pal-nodejs');
@@ -73,7 +74,6 @@ function start(options: AppInitializationOptions, requestUrl: string) {
 
   const {Aurelia} = require('aurelia-framework');
   const {WebpackLoader} = require('aurelia-loader-webpack');
-  const jsdom = require('jsdom');
 
   var host = DOM.global.document.createElement('app');
   DOM.global.document.body.appendChild(host);
@@ -90,6 +90,8 @@ function start(options: AppInitializationOptions, requestUrl: string) {
   aurelia.host.attributes.setNamedItem(attribute);
 
   var main = options.main();
+
+  console.log(main);
 
   if (!main.configure) { 
     throw new Error(`Server main has no configure function`); 
