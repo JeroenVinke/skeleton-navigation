@@ -17,6 +17,13 @@ export let aureliaKoaMiddleware = (renderOptions: RenderOptions, initializationO
     console.log('start render', new Date());
     return render(Object.assign({ url: ctx.request.URL }, renderOptions), initializationOptions)
     .then(html => {
+      let children = module.children;
+      for(let i = children.length - 1; i >= 0; i--) {
+        if (children[i].filename.indexOf('server.bundle') > -1) {
+          module.children.splice(i, 1);
+        }
+      }
+      global.gc();
       ctx.body = html;
       console.log('body set', new Date());
     })
