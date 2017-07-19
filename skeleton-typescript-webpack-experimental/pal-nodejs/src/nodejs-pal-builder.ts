@@ -63,24 +63,24 @@ let intersectMethod = function (proto, methodName: string, intersect: Function) 
 };
 
 function patchNotifyChange(window: Window) {
-  let notifyInstance = MutationNotifier.getInstance();
-  let notify = function (node: Node) { notifyInstance.notifyChanged(node); };
+  // let notifyInstance = MutationNotifier.getInstance();
+  // let notify = function (node: Node) { notifyInstance.notifyChanged(node); };
 
-  let node_proto = (<any>window)._core.Node.prototype;
+  // let node_proto = (<any>window)._core.Node.prototype;
 
-  intersectMethod(node_proto, "appendChild", notify);
-  intersectMethod(node_proto, "insertBefore", notify);
-  intersectMethod(node_proto, "removeChild", notify);
-  intersectMethod(node_proto, "replaceChild", notify);
-  intersectSetter(node_proto, "nodeValue", notify);
-  intersectSetter(node_proto, "textContent", notify);
+  // intersectMethod(node_proto, "appendChild", notify);
+  // intersectMethod(node_proto, "insertBefore", notify);
+  // intersectMethod(node_proto, "removeChild", notify);
+  // intersectMethod(node_proto, "replaceChild", notify);
+  // intersectSetter(node_proto, "nodeValue", notify);
+  // intersectSetter(node_proto, "textContent", notify);
 
-  let element_proto = (<any>window)._core.Element.prototype;
+  // let element_proto = (<any>window)._core.Element.prototype;
 
-  intersectMethod(element_proto, "setAttribute", notify);
-  intersectMethod(element_proto, "removeAttribute", notify);
-  intersectMethod(element_proto, "removeAttributeNode", notify);
-  intersectMethod(element_proto, "removeAttributeNS", notify);
+  // intersectMethod(element_proto, "setAttribute", notify);
+  // intersectMethod(element_proto, "removeAttribute", notify);
+  // intersectMethod(element_proto, "removeAttributeNode", notify);
+  // intersectMethod(element_proto, "removeAttributeNS", notify);
 }
 
 

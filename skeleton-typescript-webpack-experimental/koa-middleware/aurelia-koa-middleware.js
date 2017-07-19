@@ -13,9 +13,11 @@ exports.aureliaKoaMiddleware = function (renderOptions, initializationOptions) {
         console.log('start render', new Date());
         return render(Object.assign({ url: ctx.request.URL }, renderOptions), initializationOptions)
             .then(function (html) {
+            delete require.cache[require.resolve('../dist/server.bundle')];
             var children = module.children;
             for (var i = children.length - 1; i >= 0; i--) {
                 if (children[i].filename.indexOf('server.bundle') > -1) {
+                    delete module.children[i].parent;
                     module.children.splice(i, 1);
                 }
             }

@@ -46,7 +46,7 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
     whitelist: [
       // these things should be in the webpack bundle
       // other node_modules need to be left out
-      /font-awesome|bootstrap|-loader|aurelia-(?!pal-nodejs)/,
+      /font-awesome|bootstrap|-loader|aurelia-(?!pal-nodejs|pal|polyfills)/,
     ]
   })],
   output: {
@@ -102,7 +102,11 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
     ]
   },
   plugins: [
-    new AureliaPlugin(),
+    new AureliaPlugin({
+      features: {
+        polyfills: "none"
+      }
+    }),
     new ProvidePlugin({
       'Promise': 'bluebird',
       '$': 'jquery',

@@ -6,7 +6,7 @@ import * as NODE_TYPE from 'jsdom/lib/jsdom/living/node-type';
 import {domSymbolTree} from 'jsdom/lib/jsdom/living/helpers/internal-constants';
 
 export function polyfillWholeText() {
-  function wholeText() {
+ /* function wholeText() {
     let wholeText = this.textContent;
     let next;
     let current = this;
@@ -29,5 +29,5 @@ export function polyfillWholeText() {
       enumerable: true,
       configurable: true
     });
-  });
+  });*/
 }

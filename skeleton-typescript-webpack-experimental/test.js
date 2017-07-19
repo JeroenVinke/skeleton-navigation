@@ -1,6 +1,19 @@
+require('./reflect');
 const Koa = require('koa');
 const path = require('path');
 const {aureliaKoaMiddleware} = require('./koa-middleware/aurelia-koa-middleware');
+
+// aurelia expects console.debug
+// this also allows you to see aurelia logging in cmd/terminal
+console.debug = console.log;
+
+global.array_pop = Array.prototype.pop;
+global.array_push = Array.prototype.push;
+global.array_reverse = Array.prototype.reverse;
+global.array_shift = Array.prototype.shift;
+global.array_sort = Array.prototype.sort;
+global.array_splice = Array.prototype.splice;
+global.array_unshift = Array.prototype.unshift;
 
 var port = process.env.PORT || 8080;
 
@@ -10,18 +23,6 @@ app.use(aureliaKoaMiddleware({
   preboot: true,
   minifyHtml: false,
   template: require('fs').readFileSync(path.resolve('./dist/index.ssr.html'), 'utf-8')
-}, {
-  main: () => {
-    let children = process.mainModule.children;
-    for(let i = children.length - 1; i >= 0; i--) {
-      if (children[i].filename.indexOf('server.bundle') > -1) {
-        process.mainModule.children.splice(i, 1);
-      }
-    }
-
-    delete require.cache[require.resolve('./dist/server.bundle')];
-    return require('./dist/server.bundle');
-  }
 }));
 
 app.use(require('koa-static')(path.resolve(__dirname)));
