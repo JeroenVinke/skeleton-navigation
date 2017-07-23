@@ -1,29 +1,57 @@
-﻿/// <reference types="aurelia-loader-webpack/src/webpack-hot-interface"/>
-// we want font-awesome to load as soon as possible to show the fa-spinner
-import '../static/styles.css';
-import 'font-awesome/css/font-awesome.css';
-import 'bootstrap/dist/css/bootstrap.css';
-import { Aurelia } from 'aurelia-framework';
-import { PLATFORM } from 'aurelia-pal';
-import * as Bluebird from 'bluebird';
+﻿import {Aurelia, Container} from 'aurelia-framework';
+import {WebpackLoader} from 'aurelia-loader-webpack';
+import {configure} from './main';
+const {DirtyChecker} = require('aurelia-binding');
+const palNodeJS = require('aurelia-pal-nodejs');
+const pal = require('aurelia-pal');
 
-// remove out if you don't want a Promise polyfill (remove also from webpack.config.js)
-// Bluebird.config({ warnings: { wForgottenReturn: false } });
+function initialize() {
+  const {initialize} = palNodeJS;
+  const {PLATFORM} = pal;
 
-export async function configure(aurelia: Aurelia) {
-  aurelia.use
-    .standardConfiguration()
-    .developmentLogging();
+  initialize();
 
-  // Uncomment the line below to enable animation.
-  // aurelia.use.plugin(PLATFORM.moduleName('aurelia-animator-css'));
-  // if the css animator is enabled, add swap-order="after" to all router-view elements
-
-  // Anyone wanting to use HTMLImports to load views, will need to install the following plugin.
-  // aurelia.use.plugin(PLATFORM.moduleName('aurelia-html-import-template-loader'));
-
-  await aurelia.start();
-  await aurelia.setRoot(PLATFORM.moduleName('app'));
+  // expose anything the srr-engine needs
+  return {
+    PLATFORM,
+  };
 }
 
-export * from '../ssr-engine/aurelia-ssr-engine';
+function start() {
+  const aurelia = new Aurelia(new WebpackLoader());
+    
+  aurelia.host = pal.DOM.querySelectorAll('body')[0];
+
+  const attribute = pal.DOM.createAttribute('aurelia-app');
+  attribute.value = 'main';
+  aurelia.host.attributes.setNamedItem(attribute);
+  
+  return new Promise(resolve => {
+    // we need to wait for aurelia-composed as otherwise
+    // the router hasn't been fully initialized and 
+    // generated routes by route-href will be undefined
+    pal.DOM.global.window.addEventListener('aurelia-composed', () => {
+      resolve({ aurelia, pal, palNodeJS, stop });
+    });
+    
+    return configure(aurelia);
+  });;
+}
+
+function stop() {
+  require('aurelia-pal').reset();
+  require('aurelia-pal-nodejs').reset(pal.DOM.global.window);
+
+  // stop the dirty checker, otherwise nodejs won't garbage collect the app
+  // due to the timer that depends on code inside the app
+  // as long as timer runs nodejs won't gc
+  const container = Container.instance;
+  const dirtyChecker = Container.instance.get(DirtyChecker);
+  dirtyChecker.destruct();
+}
+
+export {
+  initialize,
+  stop,
+  start
+};

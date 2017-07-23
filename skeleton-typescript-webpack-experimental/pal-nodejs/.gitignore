@@ -1,7 +1,0 @@
-node_modules
-jspm_packages
-.idea
-.DS_STORE
-build/reports
-spec/*.js
-spec/*.map

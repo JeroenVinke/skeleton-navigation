@@ -1,5 +1,4 @@
 const {series, crossEnv, concurrent, rimraf} = require('nps-utils')
-const {config: {port : E2E_PORT}} = require('./test/protractor.conf')
 
 module.exports = {
   scripts: {
@@ -26,27 +25,6 @@ module.exports = {
         browser: series.nps('test.karma', 'e2e'),
         jest: 'nps test.jest',
       })
-    },
-    e2e: {
-      default: concurrent({
-        webpack: `webpack-dev-server --inline --port=${E2E_PORT}`,
-        protractor: 'nps e2e.whenReady',
-      }) + ' --kill-others --success first',
-      protractor: {
-        install: 'webdriver-manager update',
-        default: series(
-          'nps e2e.protractor.install',
-          'protractor test/protractor.conf.js'
-        ),
-        debug: series(
-          'nps e2e.protractor.install',
-          'protractor test/protractor.conf.js --elementExplorer'
-        ),
-      },
-      whenReady: series(
-        `wait-on --timeout 120000 http-get://localhost:${E2E_PORT}/index.html`,
-        'nps e2e.protractor'
-      ),
     },
     build: 'nps webpack.build',
     webpack: {
@@ -98,7 +76,7 @@ module.exports = {
             client: `webpack --watch --env.extractCss --env.ssr`,
             server: `webpack --config webpack.server.config.js --env.extractCss --watch`
           }),
-          start: `nodemon ./test.js --expose-gc`
+          start: `nodemon ./server.js`
         }
       },
     },

@@ -33,9 +33,6 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
     __dirname: true
   },
   resolve: {
-    alias: {
-      'aurelia-pal-nodejs': path.resolve('./pal-nodejs/dist')
-    },
     extensions: ['.ts', '.js'],
     modules: [srcDir, 'node_modules'],
   },
@@ -46,7 +43,7 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
     whitelist: [
       // these things should be in the webpack bundle
       // other node_modules need to be left out
-      /font-awesome|bootstrap|-loader|aurelia-(?!pal-nodejs|pal|polyfills)/,
+      /font-awesome|bootstrap|-loader|aurelia-(?!pal-nodejs|pal|polyfills|bootstrapper)/,
     ]
   })],
   output: {
@@ -84,8 +81,6 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
       { test: /\.html$/i, loader: 'html-loader' },
       { test: /\.ts$/i, loader: 'awesome-typescript-loader', exclude: nodeModulesDir },
       { test: /\.json$/i, loader: 'json-loader' },
-      // use Bluebird as the global Promise implementation:
-      { test: /[\/\\]node_modules[\/\\]bluebird[\/\\].+\.js$/, loader: 'expose-loader?Promise' },
       // exposes jQuery globally as $ and as jQuery:
       { test: require.resolve('jquery'), loader: 'expose-loader?$!expose-loader?jQuery' },
       // embed small images and fonts as Data Urls and larger ones as files:
@@ -108,18 +103,12 @@ module.exports = ({production, server, extractCss, coverage, ssr} = {}) => ({
       }
     }),
     new ProvidePlugin({
-      'Promise': 'bluebird',
       '$': 'jquery',
       'jQuery': 'jquery',
       'window.jQuery': 'jquery',
     }),
     new TsConfigPathsPlugin(),
     new CheckerPlugin(),
-    new DefinePlugin({
-      __nodejs_require__: 'require'
-    }),
-    new DefinePlugin({
-    }),
     new CopyWebpackPlugin([
       { from: 'static/favicon.ico', to: 'favicon.ico' },
       { from: 'node_modules/preboot/__dist/preboot_browser.js', to: 'preboot_browser.js' }
