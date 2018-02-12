@@ -1,7 +1,5 @@
 //import {computedFrom} from 'aurelia-framework';
-
 import {DOM, PLATFORM} from 'aurelia-framework';
-// const $ = require('jquery')(PLATFORM.global);
 
 export class Welcome {
   heading: string = 'Welcome to the Aurelia Navigation App';
@@ -16,11 +14,6 @@ export class Welcome {
   //@computedFrom('firstName', 'lastName')
   get fullName(): string {
     return `${this.firstName} ${this.lastName}`;
-  }
-
-  attached() {
-    // console.log($('h2'));
-    // $('h2').css('background-color: red');
   }
 
   submit() {
